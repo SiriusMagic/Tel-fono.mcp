@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Same library versions as Stone, Luma, Calculadora, Notas and Filem on purpose (one toolchain for all the apps);
+         they move together in a separate update. -->
+    <issue id="GradleDependency" severity="ignore" />
+</lint>

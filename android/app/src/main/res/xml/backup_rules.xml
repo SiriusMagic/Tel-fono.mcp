@@ -1,0 +1,2 @@
+<!-- Android 10-11: nothing of Teléfono (settings, tokens) goes to backups either. -->
+<full-backup-content><exclude domain="root" /><exclude domain="sharedpref" /><exclude domain="database" /><exclude domain="file" /></full-backup-content>

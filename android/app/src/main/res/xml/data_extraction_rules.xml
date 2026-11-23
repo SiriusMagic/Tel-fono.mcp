@@ -1,0 +1,5 @@
+<!-- Nothing of Teléfono (settings, tokens) goes to cloud backups or device transfers. -->
+<data-extraction-rules>
+    <cloud-backup><exclude domain="root" /><exclude domain="sharedpref" /><exclude domain="database" /><exclude domain="file" /></cloud-backup>
+    <device-transfer><exclude domain="root" /><exclude domain="sharedpref" /><exclude domain="database" /><exclude domain="file" /></device-transfer>
+</data-extraction-rules>

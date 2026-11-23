@@ -1,0 +1,60 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- «Recientes» and the names of numbers; «Llamar» from Teléfono. Only after the user allows each. -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- The «llama a…» requests the user's AI may send. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <!-- Modo MCP through the relay, only when the user turns it on (off by default). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <permission android:name="com.zirakusa.gatewayhub.permission.LINK" android:protectionLevel="signature"
+        android:label="@string/hub_link_permission" />
+    <permission android:name="com.zirakusa.family.permission.SUMMARY" android:protectionLevel="signature"
+        android:label="@string/summary_permission" />
+    <queries>
+        <package android:name="com.zirakusa.gatewayhub" />
+        <intent><action android:name="android.intent.action.DIAL" /></intent>
+        <intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="smsto" /></intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+        <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- A number from another app (tel:) opens in the keypad. -->
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.zirakusa.gatewayhub.action.APP" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="com.zirakusa.gatewayhub.module" android:value="phone_" />
+            <meta-data android:name="com.zirakusa.gatewayhub.link" android:value="${applicationId}.hublink" />
+            <meta-data android:name="com.zirakusa.family.summary" android:value="${applicationId}.summary" />
+        </activity>
+        <provider android:name=".SummaryProvider" android:authorities="${applicationId}.summary"
+            android:exported="true" android:permission="com.zirakusa.family.permission.SUMMARY" />
+        <provider android:name=".mcp.HubLinkProvider" android:authorities="${applicationId}.hublink"
+            android:exported="true" android:permission="com.zirakusa.gatewayhub.permission.LINK" />
+    </application>
+</manifest>
