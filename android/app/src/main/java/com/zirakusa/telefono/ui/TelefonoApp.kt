@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Contacts
 import androidx.compose.material.icons.outlined.Dialpad
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.StarBorder
@@ -26,17 +27,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zirakusa.telefono.R
+import com.zirakusa.telefono.data.Sim
+import com.zirakusa.telefono.ui.screens.DetailScreen
 import com.zirakusa.telefono.ui.screens.FavoritesScreen
 import com.zirakusa.telefono.ui.screens.KeypadScreen
 import com.zirakusa.telefono.ui.screens.McpScreen
 import com.zirakusa.telefono.ui.screens.RecentsScreen
 import com.zirakusa.telefono.ui.screens.SettingsScreen
+import com.zirakusa.telefono.ui.screens.SimDialog
 import com.zirakusa.telefono.ui.theme.TelefonoColors
 
 /** What the screens ask of the phone (the activity gives the real ones; tests leave the defaults). Each only after a tap. */
 class AppActions(
     val allow: () -> Unit = {},
-    val call: (String) -> Unit = {},
+    /** Calls (or opens the dialer, per «Llamar directamente»); with [Sim] when the user chose one. Never without a tap. */
+    val call: (String, Sim?) -> Unit = { _, _ -> },
+    /** Opens WhatsApp's chat with these international digits (only shown when WhatsApp is installed). */
+    val whatsapp: (String) -> Unit = {},
+    /** Opens the Contactos app of the family (or the phone's contacts). */
+    val contacts: () -> Unit = {},
+    /** Edits a saved contact (in the phone's contacts editor). */
+    val editContact: (Long) -> Unit = {},
     val sms: (String) -> Unit = {},
     val addContact: (String) -> Unit = {},
     val copy: (String) -> Unit = {},
@@ -45,10 +56,18 @@ class AppActions(
     val goToHub: () -> Unit = {},
 )
 
+/** A tap on «Llamar»: with the default (or only) SIM, or first «¿Con qué SIM llamas?» when there are two and no default. */
+fun TelefonoState.dial(number: String, actions: AppActions) {
+    if (number.none { it.isDigit() }) return
+    if (mustAsk) asking = number else actions.call(number, chosenSim)
+}
+
 @Composable fun TelefonoApp(state: TelefonoState, actions: AppActions = AppActions()) {
+    SimDialog(state, actions)
     when (state.page) {
         Page.SETTINGS -> return SettingsScreen(state)
         Page.MCP -> return McpScreen(actions.copyLink, actions.goToHub) { state.page = Page.SETTINGS }
+        Page.DETAIL -> return DetailScreen(state, actions)
         Page.MAIN -> Unit
     }
     Box(Modifier.fillMaxSize().background(TelefonoColors.Background)) {
@@ -62,6 +81,7 @@ class AppActions(
             TabItem(Icons.Outlined.StarBorder, R.string.tab_favorites, state.tab == Tab.FAVORITES) { state.tab = Tab.FAVORITES }
             TabItem(Icons.Outlined.History, R.string.tab_recents, state.tab == Tab.RECENTS) { state.tab = Tab.RECENTS }
             TabItem(Icons.Outlined.Dialpad, R.string.tab_keypad, state.tab == Tab.KEYPAD) { state.tab = Tab.KEYPAD }
+            TabItem(Icons.Outlined.Contacts, R.string.tab_contacts, false, actions.contacts)
         }
     }
 }

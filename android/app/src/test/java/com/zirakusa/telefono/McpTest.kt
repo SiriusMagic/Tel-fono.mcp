@@ -19,11 +19,11 @@ import org.robolectric.annotation.Config
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-/** Teléfono's MCP: tools list (no dialling), good calls, the call request, bad arguments, not found, no permission, read-only, tokens, hub link. */
+/** Teléfono's MCP: tools list (no dialling), good calls (with the SIM slot), the call request, bad arguments, not found, no permission, read-only, tokens, hub link. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class McpTest {
-    private val memory = MemoryBook(Book.calls, Book.people)
+    private val memory = MemoryBook(Book.calls, Book.people, Book.sims)
     private val data = object : PhoneData {
         override val book = memory
         val asked = mutableListOf<Triple<String, String, String>>()
@@ -58,6 +58,8 @@ class McpTest {
     @Test fun readsAndAsks() {
         val calls = ok("phone_calls", JSONObject().put("limit", 2)).getJSONArray("calls")
         assertEquals(2, calls.length()); assertEquals("missed", calls.getJSONObject(0).getString("type")); assertEquals("2026-11-21T09:05", calls.getJSONObject(0).getString("at"))
+        assertEquals(2, calls.getJSONObject(0).getInt("sim")); assertFalse(calls.getJSONObject(1).has("sim"))           // SIM slot only when known
+        assertEquals(1, ok("phone_call", JSONObject().put("id", 3)).getJSONObject("call").getInt("sim"))
         assertEquals(1, ok("phone_calls", JSONObject().put("type", "outgoing")).getJSONArray("calls").length())
         assertEquals(2, ok("phone_missed").getInt("total")); assertEquals(3, ok("phone_missed", JSONObject().put("since", "2026-11-19")).getInt("total"))
         assertEquals(3723, ok("phone_call", JSONObject().put("id", 4)).getJSONObject("call").getInt("seconds"))

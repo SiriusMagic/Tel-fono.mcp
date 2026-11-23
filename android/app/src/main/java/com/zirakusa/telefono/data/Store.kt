@@ -8,15 +8,18 @@ interface PhoneBook {
     fun calls(limit: Int = 500): List<Call>
     /** The contacts with numbers; empty without the permission. */
     fun people(): List<Person>
+    /** The SIMs that can call, by slot; empty when unknown (no permission, one SIM-less phone, tests). */
+    fun sims(): List<Sim> = emptyList()
 }
 
 /** The user hasn't allowed Teléfono to read the call log. */
 class NoAccess : Exception()
 
-class MemoryBook(var callList: List<Call> = emptyList(), var peopleList: List<Person> = emptyList()) : PhoneBook {
+class MemoryBook(var callList: List<Call> = emptyList(), var peopleList: List<Person> = emptyList(), var simList: List<Sim> = emptyList()) : PhoneBook {
     var allowed = true
     override fun calls(limit: Int): List<Call> { if (!allowed) throw NoAccess(); return callList.sortedByDescending { it.at }.take(limit) }
     override fun people() = peopleList
+    override fun sims() = simList
 }
 
 /** Where the settings live: the phone's preferences in the app, a map in the tests. */
@@ -37,6 +40,8 @@ class Settings(private val kv: KeyValues) {
     var tones: Boolean get() = flag("tones", true); set(v) = kv.put("tones", if (v) "1" else "0")
     /** Call at once from Teléfono (needs the phone permission); off: the number opens in the phone's dialer. */
     var direct: Boolean get() = flag("direct", true); set(v) = kv.put("direct", if (v) "1" else "0")
+    /** «SIM por defecto» when the phone has two: ask, SIM 1 or SIM 2. */
+    var sim: SimChoice get() = kv.get("sim")?.let { runCatching { SimChoice.valueOf(it) }.getOrNull() } ?: SimChoice.ASK; set(v) = kv.put("sim", v.name)
     var theme: String? get() = kv.get("theme"); set(v) = kv.put("theme", v)
     var accent: String? get() = kv.get("accent"); set(v) = kv.put("accent", v)
 }

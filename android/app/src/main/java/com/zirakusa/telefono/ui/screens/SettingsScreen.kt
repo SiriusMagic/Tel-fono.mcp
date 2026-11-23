@@ -23,13 +23,14 @@ import com.zirakusa.telefono.BuildConfig
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.unit.sp
 import com.zirakusa.telefono.R
+import com.zirakusa.telefono.data.SimChoice
 import com.zirakusa.telefono.mcp.McpMode
 import com.zirakusa.telefono.mcp.RelayLink
 import com.zirakusa.telefono.ui.Page
 import com.zirakusa.telefono.ui.TelefonoState
 import com.zirakusa.telefono.ui.theme.TelefonoColors
 
-/** «Ajustes»: direct calls, keypad tones, Modo MCP, Temas, privacy and version. */
+/** «Ajustes»: direct calls, keypad tones, «SIM por defecto», Modo MCP, Temas, privacy and version. */
 @Composable fun SettingsScreen(state: TelefonoState) {
     var privacy by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().background(TelefonoColors.Background).systemBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
@@ -39,6 +40,14 @@ import com.zirakusa.telefono.ui.theme.TelefonoColors
             SwitchItem(stringResource(R.string.direct), stringResource(R.string.direct_hint), state.direct, onChange = state::changeDirect)
             Divider()
             SwitchItem(stringResource(R.string.tones), null, state.tones, onChange = state::changeTones)
+            Divider()
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.default_sim), fontSize = 18.sp)
+                val sims = state.sims.map { simName(it) }
+                Text(if (sims.size >= 2) sims.joinToString(", ") else stringResource(R.string.default_sim_hint), color = TelefonoColors.Muted, fontSize = 14.sp)
+                Segmented(listOf(stringResource(R.string.ask), stringResource(R.string.sim_n, 1), stringResource(R.string.sim_n, 2)), state.defaultSim.ordinal,
+                    Modifier.fillMaxWidth()) { state.changeSim(SimChoice.entries[it]) }
+            }
         }
         Group {
             val status = when {

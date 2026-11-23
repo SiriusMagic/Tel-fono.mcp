@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.zirakusa.telefono.R
 import com.zirakusa.telefono.ui.AppActions
 import com.zirakusa.telefono.ui.TelefonoState
+import com.zirakusa.telefono.ui.dial
 import com.zirakusa.telefono.ui.theme.TelefonoColors
 
 /** «Favoritos»: the contacts with a star (marked in Contactos), big; one tap calls. */
@@ -37,7 +38,7 @@ import com.zirakusa.telefono.ui.theme.TelefonoColors
     if (favs.isEmpty()) Text(stringResource(R.string.no_favorites), Modifier.padding(16.dp), color = TelefonoColors.Muted)
     LazyVerticalGrid(GridCells.Fixed(3), contentPadding = PaddingValues(bottom = 100.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         items(favs, key = { it.id }) { p ->
-            Column(Modifier.clip(CircleShape).clickable(onClickLabel = stringResource(R.string.call)) { actions.call(p.numbers.first()) }.padding(6.dp),
+            Column(Modifier.clip(CircleShape).clickable(onClickLabel = stringResource(R.string.call)) { state.dial(p.numbers.first(), actions) }.padding(6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.size(76.dp).clip(CircleShape).background(TelefonoColors.Accent.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
                     Text(p.name.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }, color = TelefonoColors.AccentText,

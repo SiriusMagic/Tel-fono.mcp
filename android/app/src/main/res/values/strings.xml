@@ -65,8 +65,7 @@
     <string name="allow_text">Para ver tus llamadas y llamar desde aquí, permite el registro de llamadas, los contactos y el teléfono.</string>
     <string name="allow">Permitir</string>
     <string name="no_app">No hay una app para esto</string>
-    <string name="all">Todas</string>
-    <string name="missed_n">Perdidas hoy: %1$d</string>
+    <string name="all">Todo</string>
     <string name="no_calls">No hay llamadas.</string>
     <string name="private_number">Número privado</string>
     <string name="call">Llamar</string>
@@ -89,5 +88,33 @@
     <string name="request_text">Toca para abrir el número. Tú decides si llamas.</string>
     <string name="summary_title">Llamadas perdidas</string>
     <string name="summary_empty">Sin llamadas perdidas hoy</string>
-    <string name="privacy_text">Teléfono no tiene anuncios ni estadísticas. Lee el registro de llamadas y los contactos del teléfono solo para mostrarlos aquí; no guarda copias. Inicio solo ve las llamadas perdidas de hoy. Solo si activas el Modo MCP, la IA que conectes con un token puede ver tus llamadas y, si el token es de lectura y escritura, pedirte que llames a alguien con una notificación: tú decides si llamas. La IA nunca marca, contesta ni cuelga.</string>
+    <string name="privacy_text">Teléfono no tiene anuncios ni estadísticas. Lee el registro de llamadas y los contactos del teléfono solo para mostrarlos aquí; no guarda copias. De las SIM solo lee cuáles pueden llamar y con cuál fue cada llamada. El botón de WhatsApp solo abre WhatsApp con el número; Teléfono no usa internet para eso. Inicio solo ve las llamadas perdidas de hoy. Solo si activas el Modo MCP, la IA que conectes con un token puede ver tus llamadas y, si el token es de lectura y escritura, pedirte que llames a alguien con una notificación: tú decides si llamas. La IA nunca marca, contesta ni cuelga.</string>
+    <string name="whatsapp" translatable="false">WhatsApp</string>
+    <string name="missed_tab">Llamadas perdidas</string>
+    <string name="tab_contacts">Contactos</string>
+    <string name="just_now">Justo ahora</string>
+    <string name="minutes_ago">hace %1$d min</string>
+    <string name="yesterday">Ayer</string>
+    <string name="am">a. m.</string>
+    <string name="pm">p. m.</string>
+    <string name="months_short">ene,feb,mar,abr,may,jun,jul,ago,sept,oct,nov,dic</string>
+    <string name="info">Detalles</string>
+    <string name="sim_n">SIM %1$d</string>
+    <string name="call_with">Llamar con SIM %1$d</string>
+    <string name="call_with_default">Llamar con SIM %1$d (por defecto)</string>
+    <string name="call_ask_sim">Elegir la SIM al llamar</string>
+    <string name="pick_sim">¿Con qué SIM llamas?</string>
+    <string name="default_sim">SIM por defecto</string>
+    <string name="default_sim_hint">Para teléfonos con dos SIM: con cuál llamar sin preguntar.</string>
+    <string name="ask">Preguntar</string>
+    <string name="history">Registro de llamadas</string>
+    <string name="see_more">Ver más</string>
+    <string name="not_connected">No conectado</string>
+    <string name="h_incoming">Llamada entrante</string>
+    <string name="h_outgoing">Llamada saliente</string>
+    <string name="h_missed">Llamada perdida</string>
+    <string name="h_rejected">Llamada rechazada</string>
+    <string name="h_blocked">Llamada bloqueada</string>
+    <string name="edit_contact">Editar contacto</string>
+    <string name="new_contact">Crear contacto</string>
 </resources>

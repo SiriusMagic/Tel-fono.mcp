@@ -19,7 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +42,7 @@ import com.zirakusa.telefono.ui.theme.TelefonoColors
 
 private val keys = listOf('1' to "", '2' to "ABC", '3' to "DEF", '4' to "GHI", '5' to "JKL", '6' to "MNÑO", '7' to "PQRS", '8' to "TUV", '9' to "WXYZ", '*' to "", '0' to "+", '#' to "")
 
-/** «Teclado»: the number big, contacts that match (by letters or digits), the 12 keys and the green call button. */
+/** «Teclado»: the number big, contacts that match (by letters or digits), the 12 keys, WhatsApp and the call button (one per SIM). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable fun KeypadScreen(state: TelefonoState, actions: AppActions) = Column(Modifier.fillMaxSize().systemBarsPadding().padding(horizontal = 24.dp).padding(bottom = 96.dp),
     horizontalAlignment = Alignment.CenterHorizontally) {
@@ -69,11 +69,12 @@ private val keys = listOf('1' to "", '2' to "ABC", '3' to "DEF", '4' to "GHI", '
         }
     }
     Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-        Spacer(Modifier.size(78.dp))
-        Box(Modifier.size(72.dp).clip(CircleShape).background(TelefonoColors.Accent).clickable(enabled = state.typed.any { it.isDigit() },
-            onClickLabel = stringResource(R.string.call)) { actions.call(state.typed) }, contentAlignment = Alignment.Center) {
-            Icon(Icons.Outlined.Call, stringResource(R.string.call), Modifier.size(32.dp), tint = TelefonoColors.OnAccent)
-        }
+        val wa = Numbers.wa(state.typed)
+        if (state.whatsapp && wa != null) Box(Modifier.size(64.dp).clip(CircleShape).background(TelefonoColors.Accent)
+            .clickable(onClickLabel = stringResource(R.string.whatsapp)) { actions.whatsapp(wa) }, contentAlignment = Alignment.Center) {
+            Icon(Icons.AutoMirrored.Outlined.Chat, stringResource(R.string.whatsapp), Modifier.size(28.dp), tint = TelefonoColors.OnAccent)
+        } else Spacer(Modifier.size(64.dp))
+        CallPill(state, actions, state.typed)
         Box(Modifier.size(78.dp).clip(CircleShape).combinedClickable(onClick = state::backspace, onLongClick = state::clearTyped)
             .semantics { contentDescription = "⌫" }, contentAlignment = Alignment.Center) {
             if (state.typed.isNotEmpty()) Icon(Icons.AutoMirrored.Outlined.Backspace, stringResource(R.string.delete), tint = TelefonoColors.Muted)
