@@ -113,11 +113,8 @@ class MainActivity : ComponentActivity() {
         open(Intent(Intent.ACTION_VIEW, "https://wa.me/$digits".toUri()).setPackage(pkg))
     }
 
-    /** «Contactos»: the family's Contactos app when installed, otherwise the phone's contacts. */
-    private fun contacts() {
-        val ours = packageManager.getLaunchIntentForPackage("com.zirakusa.contactos")
-        open(ours ?: Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
-    }
+    /** «Contactos»: inside Teléfono now (its own screen and launcher icon), opened at once. */
+    private fun contacts() = open(Intent(this, com.zirakusa.contactos.MainActivity::class.java))
 
     private fun tone(k: Char) {
         if (!state.tones) return

@@ -1,3 +1,17 @@
+# Teléfono 0.3.0: Contactos dentro de Teléfono
+
+- **Una sola app**: Contactos completo vive ahora dentro de Teléfono (lista con A–Z, ficha, editar, «Guardar en», combinar
+  repetidos, cumpleaños, tarjeta con QR, importar/exportar .vcf, cuentas y sus ajustes). Al instalar Teléfono aparecen dos
+  iconos: **Teléfono** y **Contactos**; el de Contactos abre directo la lista, sin pasar por el teclado.
+- El botón «Contactos» de Teléfono abre esa misma pantalla, al instante.
+- **Modo MCP**: Teléfono sirve también las herramientas de contactos (`contacts_search`, `contacts_get`,
+  `contacts_favorites`, `contacts_birthdays`; con lectura y escritura `contacts_create` y `contacts_favorite`). Un solo
+  token `tel_` para las dos. La IA sigue sin poder borrar contactos ni llamar.
+- **Resumen para Inicio**: llamadas perdidas de hoy y, después, los cumpleaños de la semana.
+- La app Contactos aparte ya no hace falta: se puede desinstalar (los contactos son los de Android, no se pierde nada; sus
+  ajustes de orden y formato se eligen de nuevo).
+- 32 pruebas.
+
 # Teléfono 0.2.0
 
 - Recientes con pestañas «Todo» y «Llamadas perdidas» (con un punto si hoy hubo perdidas), título grande y, en cada

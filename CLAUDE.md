@@ -9,6 +9,8 @@
   pantallas solo pintan y avisan. El registro y los contactos pasan por `PhoneBook` (`AndroidBook` / `MemoryBook`).
 - La IA **nunca** marca, contesta ni cuelga, ni envía códigos *…#. Solo puede pedir una llamada con una notificación que
   el usuario toca (`Requests`), y eso solo abre el marcador.
+- Contactos vive dentro de Teléfono (`com.zirakusa.contactos`, recursos con prefijo `c_`, su propio icono). Sus reglas
+  siguen: consultas siempre con `?`, la IA puede leer, crear y marcar favoritos; **nunca eliminar**.
 - Privacidad: el registro de llamadas y los contactos se leen, no se copian. Nada sale salvo por el Modo MCP que el usuario
   active; internet es solo para eso.
 - Cada herramienta MCP nueva lleva su prueba en `McpTest`: lista de herramientas, llamada correcta, argumentos malos y

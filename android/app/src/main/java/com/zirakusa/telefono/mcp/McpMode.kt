@@ -44,6 +44,7 @@ object McpMode {
         relaySecret = SecretBox.open(p.getString("relay", "") ?: "").ifBlank {
             Token.secret().also { p.edit { putString("relay", SecretBox.seal(it)) } }
         }
+        contacts = com.zirakusa.contactos.mcp.ContactLiveData(app)
         data = LiveData(app)
         apply()
     }
@@ -71,12 +72,13 @@ object McpMode {
     private fun save(list: List<Token>) { tokens = list; prefs?.edit { putString("tokens", SecretBox.seal(Token.serialize(list))) } }
 
     private var data: PhoneData? = null
+    private var contacts: com.zirakusa.contactos.mcp.ContactData? = null
 
     private fun apply() {
         val d = data ?: return
         if (active && relayUrl.isNotBlank()) {
             if (link == null) link = RelayLink(relayUrl, device, relaySecret,
-                McpHandler(::served, d, BuildConfig.VERSION_NAME, onUsed = ::touch)) { state = it }.also { it.start() }
+                McpHandler(::served, d, BuildConfig.VERSION_NAME, onUsed = ::touch, contacts = contacts)) { state = it }.also { it.start() }
         } else { link?.stop(); link = null; state = RelayLink.State.OFFLINE }
     }
 

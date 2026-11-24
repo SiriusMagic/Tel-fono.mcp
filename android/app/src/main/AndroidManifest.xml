@@ -2,6 +2,8 @@
     <!-- «Recientes» and the names of numbers; «Llamar» from Teléfono. Only after the user allows each. -->
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Contactos (inside Teléfono): create and edit contacts, only after the user allows it. -->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- Which SIMs can call («SIM 1» / «SIM 2») and which one each call used. Nothing else of the phone's state. -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -16,12 +18,12 @@
         android:label="@string/summary_permission" />
     <queries>
         <package android:name="com.zirakusa.gatewayhub" />
-        <!-- «Contactos» opens the family's app; WhatsApp buttons only show when it is installed. -->
-        <package android:name="com.zirakusa.contactos" />
+        <!-- WhatsApp buttons only show when it is installed. -->
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
         <intent><action android:name="android.intent.action.DIAL" /></intent>
         <intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="smsto" /></intent>
+        <intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="mailto" /></intent>
     </queries>
 
     <application
@@ -62,5 +64,20 @@
             android:exported="true" android:permission="com.zirakusa.family.permission.SUMMARY" />
         <provider android:name=".mcp.HubLinkProvider" android:authorities="${applicationId}.hublink"
             android:exported="true" android:permission="com.zirakusa.gatewayhub.permission.LINK" />
+        <!-- Contactos: one app with Teléfono, its own icon in the launcher that opens straight on the list. -->
+        <activity android:name="com.zirakusa.contactos.MainActivity" android:exported="true" android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.contactos" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- «Compartir» a contact: its .vcf from the app's cache, read only by the app the user picks. -->
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.files"
+            android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

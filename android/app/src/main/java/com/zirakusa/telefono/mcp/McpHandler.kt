@@ -1,5 +1,7 @@
 package com.zirakusa.telefono.mcp
 
+import com.zirakusa.contactos.mcp.ContactData
+import com.zirakusa.contactos.mcp.ContactTools
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -14,7 +16,9 @@ data class Reply(val status: Int, val body: String, val contentType: String = "a
  * token; bodies over 1 MiB are refused.
  */
 class McpHandler(private val tokens: () -> List<Token>, private val data: PhoneData, private val version: String,
-    private val onUsed: (Token) -> Unit = {}, private val now: () -> Long = System::currentTimeMillis) {
+    private val onUsed: (Token) -> Unit = {}, private val now: () -> Long = System::currentTimeMillis,
+    /** Contactos lives inside Teléfono: its tools (contacts_…) are served here too. */
+    private val contacts: ContactData? = null) {
     private val window = HashMap<String, Pair<Long, Int>>()
 
     suspend fun handle(method: String, path: String, headers: Map<String, String>, query: Map<String, String>, body: String): Reply {
@@ -51,7 +55,10 @@ class McpHandler(private val tokens: () -> List<Token>, private val data: PhoneD
             "tools/list" -> JSONObject().put("tools", JSONArray(PhoneTools.available(token.access).map {
                 JSONObject().put("name", it.name).put("description", it.description).put("inputSchema", it.schema)
                     .put("annotations", JSONObject().put("readOnlyHint", !it.write).put("destructiveHint", it.name in DESTRUCTIVE))
-            }))
+            } + (if (contacts == null) emptyList() else ContactTools.available(token.access).map {
+                JSONObject().put("name", it.name).put("description", it.description).put("inputSchema", it.schema)
+                    .put("annotations", JSONObject().put("readOnlyHint", !it.write).put("destructiveHint", false))
+            })))
             "tools/call" -> call(params, token)
             "resources/list" -> JSONObject().put("resources", JSONArray())
             "resources/templates/list" -> JSONObject().put("resourceTemplates", JSONArray())
@@ -62,7 +69,9 @@ class McpHandler(private val tokens: () -> List<Token>, private val data: PhoneD
     }
 
     private suspend fun call(params: JSONObject, token: Token): JSONObject = try {
-        val out = PhoneTools.call(params.optString("name"), params.optJSONObject("arguments") ?: JSONObject(), token.access, data, token.name)
+        val name = params.optString("name"); val args = params.optJSONObject("arguments") ?: JSONObject()
+        val out = if (contacts != null && name.startsWith("contacts_")) ContactTools.call(name, args, token.access, contacts)
+            else PhoneTools.call(name, args, token.access, data, token.name)
         JSONObject().put("content", JSONArray().put(JSONObject().put("type", "text").put("text", out.toString()))).put("structuredContent", out)
     } catch (failure: ToolFailure) {
         val error = JSONObject().put("error", JSONObject().put("code", failure.code).put("message", failure.message))
@@ -92,7 +101,9 @@ class McpHandler(private val tokens: () -> List<Token>, private val data: PhoneD
     companion object {
         const val INSTRUCTIONS = "The phone's calls (Teléfono). phone_calls lists the recent calls, phone_missed the missed ones and " +
             "phone_call one of them. With a read-and-write token the AI can ask the user to call someone (phone_call_request): a " +
-            "notification the user taps; the AI never dials, answers or hangs up. "
+            "notification the user taps; the AI never dials, answers or hangs up. Contacts (Contactos, inside Teléfono): contacts_search, " +
+            "contacts_get, contacts_favorites, contacts_birthdays; with read-and-write also contacts_create and contacts_favorite. The AI " +
+            "never deletes a contact. "
         val DESTRUCTIVE = emptySet<String>()
         /** Read by Gateway Hub (as Stone's): which token this is and what it is for, never the secret. */
         const val TOKEN_META = "com.zirakusa/token"

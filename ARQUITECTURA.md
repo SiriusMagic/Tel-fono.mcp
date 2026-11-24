@@ -1,5 +1,10 @@
 # Arquitectura de Teléfono
 
+Teléfono incluye **Contactos** (desde 0.3.0): su código vive en `com.zirakusa.contactos` dentro de este mismo módulo, con su
+propia actividad y su propio icono de inicio (`com.zirakusa.contactos.MainActivity`). Sus recursos llevan el prefijo `c_`
+(`res/values*/contactos.xml`, `c_ic_launcher`). Sus herramientas MCP (`contactos/mcp/ContactTools.kt`) las sirve el
+`McpHandler` de Teléfono; `ContactLiveData` les da los contactos reales. Sus pruebas están en `src/test/.../contactos/`.
+
 Carpeta = package (`android/app/src/main/java/com/zirakusa/telefono/`):
 
 | Carpeta | Qué hay |

@@ -21,7 +21,7 @@ object SummaryLines {
         }
 }
 
-/** The family summary (see Inicio's FAMILIA.md): missed calls for Inicio's «Hoy». Only apps signed by the same developer may ask. */
+/** The family summary (see Inicio's FAMILIA.md): missed calls and birthdays for Inicio's «Hoy». Only apps signed by the same developer may ask. */
 class SummaryProvider : ContentProvider() {
     override fun onCreate() = true
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
@@ -33,7 +33,8 @@ class SummaryProvider : ContentProvider() {
         val lines = SummaryLines.lines(calls, LocalDate.now(), ZoneId.systemDefault(), context.getString(R.string.private_number))
         return Bundle().apply {
             putString("title", context.getString(R.string.summary_title))
-            putStringArrayList("lines", ArrayList(lines))
+            // Missed calls first, then the birthdays of the week (Contactos is inside Teléfono).
+            putStringArrayList("lines", ArrayList((lines + com.zirakusa.contactos.Birthdays.lines(context)).take(SummaryLines.MAX)))
             putString("empty", context.getString(R.string.summary_empty))
         }
     }

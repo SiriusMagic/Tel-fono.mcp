@@ -1,0 +1,6 @@
+<!-- Contactos: a pink person in a white card. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M36,30h36a6,6 0,0 1,6 6v36a6,6 0,0 1,-6 6h-36a6,6 0,0 1,-6 -6v-36a6,6 0,0 1,6 -6z" />
+    <path android:fillColor="#F06292" android:pathData="M54,40a8,8 0,1 1,0 16a8,8 0,1 1,0 -16zM40,72c0,-8 6,-13 14,-13s14,5 14,13z" />
+</vector>
