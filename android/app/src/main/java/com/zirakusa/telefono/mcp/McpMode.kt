@@ -74,6 +74,22 @@ object McpMode {
     private var data: PhoneData? = null
     private var contacts: com.zirakusa.contactos.mcp.ContactData? = null
 
+    /** «Conectar todas» in Gateway Hub (the user's tap there): turns «Redireccionar a Hub» on here. */
+    fun connectFromHub() { if (!hubRedirect) redirect(true) }
+
+    /**
+     * Lucía (Gateway Hub's voice on this phone) runs one tool without internet, with the hub's own token: the same checks
+     * and rules as through the relay. Only while «Redireccionar a Hub» is on. [body] is a JSON-RPC request, so is the answer.
+     */
+    fun local(body: String): String? {
+        val d = data ?: return null
+        if (!hubRedirect) return null
+        val token = redirectToken()
+        return kotlinx.coroutines.runBlocking {
+            McpHandler(::served, d, BuildConfig.VERSION_NAME, onUsed = ::touch, contacts = contacts).handle("POST", "/mcp", mapOf("Authorization" to "Bearer ${token.secret}"), emptyMap(), body).body
+        }
+    }
+
     private fun apply() {
         val d = data ?: return
         if (active && relayUrl.isNotBlank()) {

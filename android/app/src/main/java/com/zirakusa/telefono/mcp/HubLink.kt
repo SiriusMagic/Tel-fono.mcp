@@ -18,18 +18,32 @@ object HubLink {
         McpMode.relayUrl.isBlank() -> error("NO_RELAY", "Esta versión de Teléfono no tiene enlace público (relay).")
         else -> Bundle().apply { putString("link", McpMode.hubLink()) }
     }
+    /** «Conectar todas» in Gateway Hub: the user's tap there turns this app's «Redireccionar a Hub» on. */
+    fun connect(sameDeveloper: Boolean): Bundle { if (sameDeveloper) McpMode.connectFromHub(); return answer(sameDeveloper) }
+
+    /** One tool for Lucía, on the phone: [request] is a JSON-RPC «tools/call»; the answer comes back in «response». */
+    fun tool(sameDeveloper: Boolean, request: String?): Bundle = when {
+        !sameDeveloper || !McpMode.hubRedirect -> answer(sameDeveloper)
+        request.isNullOrBlank() -> error("BAD_REQUEST", "Falta la petición.")
+        else -> McpMode.local(request)?.let { r -> Bundle().apply { putString("response", r) } } ?: error("NOT_READY", "La app aún no está lista.")
+    }
+
     private fun error(code: String, message: String) = Bundle().apply { putString("error", code); putString("message", message) }
 }
 
 class HubLinkProvider : ContentProvider() {
     override fun onCreate() = true
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-        if (method != "link") return null
+        if (method !in setOf("link", "connect", "tool")) return null
         val context = context ?: return null
         val caller = callingPackage
         val same = caller != null && context.packageManager.checkSignatures(context.packageName, caller) == PackageManager.SIGNATURE_MATCH
         if (same) McpMode.load(context)
-        return HubLink.answer(same)
+        return when (method) {
+            "connect" -> HubLink.connect(same)
+            "tool" -> HubLink.tool(same, extras?.getString("request"))
+            else -> HubLink.answer(same)
+        }
     }
     override fun query(uri: Uri, p: Array<out String>?, s: String?, a: Array<out String>?, o: String?): Cursor? = null
     override fun getType(uri: Uri): String? = null

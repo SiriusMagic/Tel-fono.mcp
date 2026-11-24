@@ -1,5 +1,7 @@
 package com.zirakusa.telefono.ui.screens
 
+import com.zirakusa.telefono.IconCard
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -59,6 +61,7 @@ import com.zirakusa.telefono.ui.theme.TelefonoColors
             }
             Item(stringResource(R.string.mcp_title), "$status · ${stringResource(R.string.mcp_settings_hint)}") { state.page = Page.MCP }
         }
+        IconCard(TelefonoColors.Card, TelefonoColors.Text, TelefonoColors.Muted, TelefonoColors.Accent, androidx.compose.ui.graphics.Color(0xFF07160D))
         ThemeCard(state.themeMode, state.accent, state::changeTheme, state::changeAccent)
         Caption(stringResource(R.string.about))
         Group {
