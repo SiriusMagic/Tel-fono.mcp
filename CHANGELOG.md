@@ -1,3 +1,12 @@
+# Teléfono 0.3.1
+
+- **Conectar todas** (Gateway Hub 0.0.21): con un toque en el Hub se activa aquí «Redireccionar a Hub» y la app queda
+  vinculada, sin entrar en ella. Solo lo puede pedir una app firmada por el mismo desarrollador.
+- **Lucía** (la voz del Hub) usa las herramientas de esta app en el teléfono, **sin internet**, con las mismas reglas que
+  por MCP. Solo mientras «Redireccionar a Hub» esté activado.
+- **Icono de la app**: 5 iconos para elegir (Original, Claro, Dorado, Azul y Verde) en Ajustes › Icono de la app. Tras esta
+  actualización quizá tengas que volver a poner el icono en tu pantalla de inicio (una sola vez).
+
 # Teléfono 0.3.0: Contactos dentro de Teléfono
 
 - **Una sola app**: Contactos completo vive ahora dentro de Teléfono (lista con A–Z, ficha, editar, «Guardar en», combinar
