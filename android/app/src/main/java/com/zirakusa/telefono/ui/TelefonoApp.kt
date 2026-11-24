@@ -27,8 +27,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zirakusa.telefono.R
+import com.zirakusa.telefono.data.LongPress
 import com.zirakusa.telefono.data.Sim
+import com.zirakusa.telefono.ui.screens.BlockedScreen
+import com.zirakusa.telefono.ui.screens.CarrierScreen
 import com.zirakusa.telefono.ui.screens.DetailScreen
+import com.zirakusa.telefono.ui.screens.FilterScreen
+import com.zirakusa.telefono.ui.screens.SpeedScreen
 import com.zirakusa.telefono.ui.screens.FavoritesScreen
 import com.zirakusa.telefono.ui.screens.KeypadScreen
 import com.zirakusa.telefono.ui.screens.McpScreen
@@ -54,7 +59,14 @@ class AppActions(
     val tone: (Char) -> Unit = {},
     val copyLink: (String) -> Unit = {},
     val goToHub: () -> Unit = {},
+    /** Asks Android for the call screening role («Filtro de llamadas no deseadas»). */
+    val askScreening: () -> Unit = {},
+    /** Opens one of Android's own settings pages. */
+    val system: (SystemPage) -> Unit = {},
 )
+
+/** Android's own pages Teléfono can only open: SIMs and mobile networks, sounds (ringtone) and the system's call settings. */
+enum class SystemPage { SIM_NETWORK, SOUNDS, CALLS }
 
 /** A tap on «Llamar»: with the default (or only) SIM, or first «¿Con qué SIM llamas?» when there are two and no default. */
 fun TelefonoState.dial(number: String, actions: AppActions) {
@@ -62,12 +74,22 @@ fun TelefonoState.dial(number: String, actions: AppActions) {
     if (mustAsk) asking = number else actions.call(number, chosenSim)
 }
 
+/** A long press on a key of the keypad: a «Marcación rápida» number or the voicemail goes out like a tap on «Llamar». */
+fun TelefonoState.longPress(key: Char, actions: AppActions) {
+    val what = longPress(key)
+    if (what is LongPress.Call) dial(what.number, actions) else if (what == LongPress.Type) actions.tone(key)
+}
+
 @Composable fun TelefonoApp(state: TelefonoState, actions: AppActions = AppActions()) {
     SimDialog(state, actions)
     when (state.page) {
-        Page.SETTINGS -> return SettingsScreen(state)
+        Page.SETTINGS -> return SettingsScreen(state, actions)
         Page.MCP -> return McpScreen(actions.copyLink, actions.goToHub) { state.page = Page.SETTINGS }
         Page.DETAIL -> return DetailScreen(state, actions)
+        Page.FILTER -> return FilterScreen(state, actions)
+        Page.BLOCKED -> return BlockedScreen(state)
+        Page.SPEED -> return SpeedScreen(state)
+        Page.CARRIER -> return CarrierScreen(state, actions)
         Page.MAIN -> Unit
     }
     Box(Modifier.fillMaxSize().background(TelefonoColors.Background)) {

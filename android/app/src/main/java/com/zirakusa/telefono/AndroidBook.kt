@@ -73,9 +73,20 @@ class AndroidBook(context: Context) : PhoneBook {
             val tm = app.getSystemService(TelephonyManager::class.java)
             val handles = telecom.callCapablePhoneAccounts
             val subs = app.getSystemService(SubscriptionManager::class.java)?.activeSubscriptionInfoList.orEmpty()
-                .map { SubInfo(it.simSlotIndex, it.subscriptionId, runCatching { it.iccId.orEmpty() }.getOrDefault(""), it.carrierName?.toString().orEmpty()) }
+                .map { SubInfo(it.simSlotIndex, it.subscriptionId, runCatching { it.iccId.orEmpty() }.getOrDefault(""), it.carrierName?.toString().orEmpty(),
+                    it.displayName?.toString().orEmpty()) }
             accounts.clear(); handles.forEach { accounts[it.id] = it }
             Sims.match(handles.map { h -> Handle(h.id, if (Build.VERSION.SDK_INT >= 30 && tm != null) runCatching { tm.getSubscriptionId(h) }.getOrNull()?.takeIf { it >= 0 } else null) }, subs)
         } catch (_: SecurityException) { emptyList() }
     }
+
+    /** The carrier's voicemail number (long press on 1), with the «Teléfono» permission; null when there is none. */
+    override fun voicemail(): String? {
+        if (ContextCompat.checkSelfPermission(app, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) return null
+        return try { app.getSystemService(TelephonyManager::class.java)?.voiceMailNumber?.takeIf { n -> n.any { it.isDigit() } } }
+        catch (_: SecurityException) { null } catch (_: UnsupportedOperationException) { null }
+    }
+
+    /** Whether the contacts can be read (the call filter needs it to tell contacts from strangers). */
+    fun canReadContacts() = ContextCompat.checkSelfPermission(app, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
 }

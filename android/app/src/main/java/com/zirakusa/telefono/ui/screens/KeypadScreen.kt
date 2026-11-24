@@ -38,11 +38,15 @@ import com.zirakusa.telefono.R
 import com.zirakusa.telefono.data.Numbers
 import com.zirakusa.telefono.ui.AppActions
 import com.zirakusa.telefono.ui.TelefonoState
+import com.zirakusa.telefono.ui.longPress
 import com.zirakusa.telefono.ui.theme.TelefonoColors
 
 private val keys = listOf('1' to "", '2' to "ABC", '3' to "DEF", '4' to "GHI", '5' to "JKL", '6' to "MNÑO", '7' to "PQRS", '8' to "TUV", '9' to "WXYZ", '*' to "", '0' to "+", '#' to "")
 
-/** «Teclado»: the number big, contacts that match (by letters or digits), the 12 keys, WhatsApp and the call button (one per SIM). */
+/**
+ * «Teclado»: the number big, contacts that match (by letters or digits), the 12 keys, WhatsApp and the call button (one per
+ * SIM). A long press on 1 calls the voicemail, on 2–9 its «Marcación rápida» number, on 0 writes «+».
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable fun KeypadScreen(state: TelefonoState, actions: AppActions) = Column(Modifier.fillMaxSize().systemBarsPadding().padding(horizontal = 24.dp).padding(bottom = 96.dp),
     horizontalAlignment = Alignment.CenterHorizontally) {
@@ -60,7 +64,7 @@ private val keys = listOf('1' to "", '2' to "ABC", '3' to "DEF", '4' to "GHI", '
         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             row.forEach { (k, letters) ->
                 Column(Modifier.size(78.dp).clip(CircleShape).background(TelefonoColors.Card)
-                    .combinedClickable(onClick = { state.press(k); actions.tone(k) }, onLongClick = if (k == '0') ({ state.plus() }) else null)
+                    .combinedClickable(onClick = { state.press(k); actions.tone(k) }, onLongClick = if (k.isDigit()) ({ state.longPress(k, actions) }) else null)
                     .semantics { contentDescription = "$k" }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("$k", fontSize = 30.sp)
                     if (letters.isNotEmpty()) Text(letters, fontSize = 11.sp, color = TelefonoColors.Muted)

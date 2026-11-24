@@ -11,6 +11,8 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Build
 import android.os.Bundle
+import android.app.role.RoleManager
+import android.provider.Settings
 import android.provider.ContactsContract
 import android.telecom.TelecomManager
 import android.widget.Toast
@@ -29,6 +31,8 @@ import com.zirakusa.telefono.data.Sim
 import com.zirakusa.telefono.mcp.McpMode
 import com.zirakusa.telefono.ui.AppActions
 import com.zirakusa.telefono.ui.Page
+import com.zirakusa.telefono.ui.Role
+import com.zirakusa.telefono.ui.SystemPage
 import com.zirakusa.telefono.ui.Tab
 import com.zirakusa.telefono.ui.TelefonoApp
 import com.zirakusa.telefono.ui.TelefonoState
@@ -41,6 +45,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var book: AndroidBook
     private var tones: ToneGenerator? = null
     private val allow = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { reload() }
+    /** Android's own «¿Usar Teléfono como app de filtro de llamadas?»; the answer shows on return ([reload]). */
+    private val role = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { reload() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +59,7 @@ class MainActivity : ComponentActivity() {
         val actions = AppActions(allow = ::ask, call = ::call, sms = { open(Intent(Intent.ACTION_SENDTO, "smsto:${android.net.Uri.encode(it)}".toUri())) },
             addContact = { open(Intent(ContactsContract.Intents.Insert.ACTION).setType(ContactsContract.RawContacts.CONTENT_TYPE).putExtra(ContactsContract.Intents.Insert.PHONE, it)) },
             copy = { copy("Teléfono", it) }, tone = ::tone, copyLink = { copy("Teléfono MCP", it) }, goToHub = ::goToHub,
-            whatsapp = ::whatsapp, contacts = ::contacts,
+            whatsapp = ::whatsapp, contacts = ::contacts, askScreening = ::askScreening, system = ::system,
             editContact = { open(Intent(Intent.ACTION_EDIT, ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, it))) })
         reload()
         if (!state.allowed) ask()
@@ -64,7 +70,9 @@ class MainActivity : ComponentActivity() {
                 SideEffect { WindowCompat.getInsetsController(window, window.decorView).run { isAppearanceLightStatusBars = light; isAppearanceLightNavigationBars = light } }
                 BackHandler(state.page != Page.MAIN || state.tab != Tab.RECENTS) {
                     when (state.page) {
-                        Page.MCP -> state.page = Page.SETTINGS; Page.SETTINGS -> state.page = Page.MAIN; Page.DETAIL -> state.closeDetail()
+                        Page.MCP, Page.FILTER, Page.CARRIER -> state.page = Page.SETTINGS; Page.SETTINGS -> state.page = Page.MAIN
+                        Page.DETAIL -> state.closeDetail(); Page.BLOCKED -> state.page = Page.FILTER
+                        Page.SPEED -> if (state.assigning != null) state.assigning = null else state.page = Page.SETTINGS
                         Page.MAIN -> state.tab = Tab.RECENTS
                     }
                 }
@@ -76,7 +84,34 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); dialed(intent) }
     override fun onResume() { super.onResume(); reload() }
 
-    private fun reload() { state.whatsapp = whatsappPackage() != null; state.load() }
+    private fun reload() { state.whatsapp = whatsappPackage() != null; state.role = screeningRole(); state.load() }
+
+    /** Whether Teléfono is the call screening app (Android 10+). */
+    private fun screeningRole(): Role {
+        if (Build.VERSION.SDK_INT < 29) return Role.UNSUPPORTED
+        val roles = getSystemService(RoleManager::class.java) ?: return Role.UNSUPPORTED
+        if (!roles.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) return Role.UNSUPPORTED
+        return if (roles.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)) Role.ON else Role.OFF
+    }
+
+    /** «Usar Teléfono como filtro»: Android itself asks the user; Teléfono only learns the answer. */
+    private fun askScreening() {
+        if (Build.VERSION.SDK_INT < 29) return
+        val roles = getSystemService(RoleManager::class.java) ?: return
+        try { role.launch(roles.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)) }
+        catch (_: ActivityNotFoundException) { Toast.makeText(this, R.string.no_app, Toast.LENGTH_SHORT).show() }
+    }
+
+    /** Android's own settings pages; if the phone lacks one, its main settings. */
+    private fun system(page: SystemPage) {
+        val action = when (page) {
+            SystemPage.SIM_NETWORK -> Settings.ACTION_WIRELESS_SETTINGS
+            SystemPage.SOUNDS -> Settings.ACTION_SOUND_SETTINGS
+            SystemPage.CALLS -> TelecomManager.ACTION_SHOW_CALL_SETTINGS
+        }
+        try { startActivity(Intent(action)) } catch (_: ActivityNotFoundException) { open(Intent(Settings.ACTION_SETTINGS)) }
+        catch (_: SecurityException) { open(Intent(Settings.ACTION_SETTINGS)) }
+    }
     override fun onDestroy() { tones?.release(); super.onDestroy() }
 
     /** A tel: link from another app opens the keypad with the number (never calls by itself). */

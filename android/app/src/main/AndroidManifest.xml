@@ -97,6 +97,13 @@
             android:exported="true" android:permission="com.zirakusa.family.permission.SUMMARY" />
         <provider android:name=".mcp.HubLinkProvider" android:authorities="${applicationId}.hublink"
             android:exported="true" android:permission="com.zirakusa.gatewayhub.permission.LINK" />
+        <!-- «Filtro de llamadas no deseadas» and «Anuncio de voz»: Android binds it only while Teléfono holds the call
+             screening role the user grants (Android 10+). It allows, silences or rejects; it never answers or records. -->
+        <service android:name=".Screening" android:exported="true" android:permission="android.permission.BIND_SCREENING_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+        </service>
         <!-- Contactos: one app with Teléfono, its own icon in the launcher that opens straight on the list. -->
         <activity android:name="com.zirakusa.contactos.MainActivity" android:exported="true" android:launchMode="singleTask"
             android:taskAffinity="${applicationId}.contactos" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher"

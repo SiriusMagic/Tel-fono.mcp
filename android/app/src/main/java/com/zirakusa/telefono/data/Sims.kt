@@ -1,13 +1,19 @@
 package com.zirakusa.telefono.data
 
-/** One SIM that can call: its slot as the user sees it (1, 2), the phone account's id, the subscription and the carrier. */
-data class Sim(val slot: Int, val id: String, val subId: Int = -1, val carrier: String = "")
+/**
+ * One SIM that can call: its slot as the user sees it (1, 2), the phone account's id, the subscription, the carrier and the
+ * line's name in Android's SIM settings.
+ */
+data class Sim(val slot: Int, val id: String, val subId: Int = -1, val carrier: String = "", val name: String = "") {
+    /** The name the phone gives this line («Claro EC», or what the user wrote in Android's SIM settings). */
+    val title get() = name.ifBlank { carrier }
+}
 
 /** A phone account that can call, as Android's TelecomManager lists it ([subId] when Android can tell). */
 data class Handle(val id: String, val subId: Int? = null)
 
 /** An active SIM as SubscriptionManager lists it ([slot] from 0). */
-data class SubInfo(val slot: Int, val subId: Int, val iccId: String = "", val carrier: String = "")
+data class SubInfo(val slot: Int, val subId: Int, val iccId: String = "", val carrier: String = "", val name: String = "")
 
 /** «SIM por defecto»: ask every time, or always SIM 1 / SIM 2. */
 enum class SimChoice { ASK, SIM1, SIM2 }
@@ -20,7 +26,7 @@ object Sims {
     /** The SIMs that can call, by slot. A handle with no matching SIM (like a SIP account) is left out. */
     fun match(handles: List<Handle>, subs: List<SubInfo>): List<Sim> = handles.mapNotNull { h ->
         val sub = subs.firstOrNull { (h.subId != null && h.subId == it.subId) || same(h.id.trim(), it) } ?: return@mapNotNull null
-        Sim(sub.slot + 1, h.id, sub.subId, sub.carrier)
+        Sim(sub.slot + 1, h.id, sub.subId, sub.carrier, sub.name)
     }.distinctBy { it.slot }.sortedBy { it.slot }
 
     /** The slot (1, 2) of the SIM a call used, from the call log's PHONE_ACCOUNT_ID; null when unknown. */

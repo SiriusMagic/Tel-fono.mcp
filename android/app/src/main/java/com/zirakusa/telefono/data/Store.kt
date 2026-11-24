@@ -10,16 +10,20 @@ interface PhoneBook {
     fun people(): List<Person>
     /** The SIMs that can call, by slot; empty when unknown (no permission, one SIM-less phone, tests). */
     fun sims(): List<Sim> = emptyList()
+    /** The voicemail number of the carrier (long press on 1); null when it has none or Android doesn't say. */
+    fun voicemail(): String? = null
 }
 
 /** The user hasn't allowed Teléfono to read the call log. */
 class NoAccess : Exception()
 
-class MemoryBook(var callList: List<Call> = emptyList(), var peopleList: List<Person> = emptyList(), var simList: List<Sim> = emptyList()) : PhoneBook {
+class MemoryBook(var callList: List<Call> = emptyList(), var peopleList: List<Person> = emptyList(), var simList: List<Sim> = emptyList(),
+    var voicemailNumber: String? = null) : PhoneBook {
     var allowed = true
     override fun calls(limit: Int): List<Call> { if (!allowed) throw NoAccess(); return callList.sortedByDescending { it.at }.take(limit) }
     override fun people() = peopleList
     override fun sims() = simList
+    override fun voicemail() = voicemailNumber
 }
 
 /** Where the settings live: the phone's preferences in the app, a map in the tests. */
@@ -42,6 +46,18 @@ class Settings(private val kv: KeyValues) {
     var direct: Boolean get() = flag("direct", true); set(v) = kv.put("direct", if (v) "1" else "0")
     /** «SIM por defecto» when the phone has two: ask, SIM 1 or SIM 2. */
     var sim: SimChoice get() = kv.get("sim")?.let { runCatching { SimChoice.valueOf(it) }.getOrNull() } ?: SimChoice.ASK; set(v) = kv.put("sim", v.name)
+    /** «Filtro de llamadas no deseadas»: reject hidden and private numbers. */
+    var blockHidden: Boolean get() = flag("block_hidden", false); set(v) = kv.put("block_hidden", if (v) "1" else "0")
+    /** Numbers not in the contacts: ring (factory setting), ring without sound or block. */
+    var unknown: Unknown get() = kv.get("unknown")?.let { runCatching { Unknown.valueOf(it) }.getOrNull() } ?: Unknown.RING; set(v) = kv.put("unknown", v.name)
+    /** «Bloqueados»: rejected silently, listed in «Recientes» as «Bloqueada». */
+    var blocked: List<String> get() = Filter.decode(kv.get("blocked")); set(v) = kv.put("blocked", Filter.encode(v))
+    /** Everything the screening service needs, in one read. */
+    val filter get() = FilterSettings(blockHidden, unknown, blocked)
+    /** «Anuncio de voz de llamada entrante». */
+    var announce: AnnounceMode get() = kv.get("announce")?.let { runCatching { AnnounceMode.valueOf(it) }.getOrNull() } ?: AnnounceMode.NEVER; set(v) = kv.put("announce", v.name)
+    /** «Marcación rápida»: keys 2–9. */
+    var speed: List<Speed> get() = SpeedDial.decode(kv.get("speed")); set(v) = kv.put("speed", SpeedDial.encode(v))
     var theme: String? get() = kv.get("theme"); set(v) = kv.put("theme", v)
     var accent: String? get() = kv.get("accent"); set(v) = kv.put("accent", v)
 }

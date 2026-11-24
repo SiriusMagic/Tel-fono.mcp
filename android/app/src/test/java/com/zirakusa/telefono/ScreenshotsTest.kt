@@ -6,22 +6,34 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.zirakusa.telefono.data.Call
+import com.zirakusa.telefono.data.AnnounceMode
 import com.zirakusa.telefono.data.CallType
+import com.zirakusa.telefono.data.Speed
+import com.zirakusa.telefono.data.Unknown
 import com.zirakusa.telefono.data.MapValues
 import com.zirakusa.telefono.data.MemoryBook
 import com.zirakusa.telefono.data.SimChoice
 import com.zirakusa.telefono.ui.AppActions
 import com.zirakusa.telefono.ui.Page
+import com.zirakusa.telefono.ui.Role
+import com.zirakusa.telefono.ui.SystemPage
 import com.zirakusa.telefono.ui.Tab
 import com.zirakusa.telefono.ui.TelefonoApp
 import com.zirakusa.telefono.ui.TelefonoState
 import com.zirakusa.telefono.ui.theme.TelefonoTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -90,9 +102,72 @@ class ScreenshotsTest {
         shot("favorites")
         state.page = Page.SETTINGS
         compose.onNodeWithText("Llamar directamente").assertExists()
-        compose.onAllNodesWithText("SIM 1")[0].performClick(); assertEquals(SimChoice.SIM1, state.defaultSim)
         shot("settings")
+        compose.onNodeWithText("Características del operador").performScrollTo().performClick()
+        compose.onAllNodesWithText("SIM 1")[0].performClick(); assertEquals(SimChoice.SIM1, state.defaultSim)
+        state.page = Page.SETTINGS
         book.allowed = false; state.load(); state.page = Page.MAIN; state.tab = Tab.RECENTS
         compose.onNodeWithText("Permitir").assertExists()
+    }
+
+    /** Ajustes › Llamadas: the filter (role, options, «Bloqueados»), the voice announcement, speed dial, the carrier page; a long press on 5. */
+    @Test fun callingPages() {
+        val calls = Book.calls + Call(9, "0980000000", "", CallType.BLOCKED, Book.at(21, 7, 30), label = "Ecuador")
+        val book = MemoryBook(calls, Book.people, Book.sims.map { if (it.slot == 1) it.copy(name = "Claro EC") else it }, voicemailNumber = "*100")
+        val state = TelefonoState(MapValues(), book, ZoneOffset.UTC, now = { Book.at(21, 9, 5) + 30_000 }) { LocalDate.of(2026, 11, 21) }
+        state.load(); state.role = Role.OFF
+        val called = mutableListOf<Pair<String, Int?>>(); var asked = 0; val opened = mutableListOf<SystemPage>()
+        compose.setContent {
+            TelefonoTheme(state.themeMode, state.accent) {
+                TelefonoApp(state, AppActions(call = { n, sim -> called += n to sim?.slot }, askScreening = { asked++ }, system = { opened += it }))
+            }
+        }
+        compose.onNodeWithText("Bloqueada").assertExists()                                    // a rejected call in Recientes
+        compose.onNodeWithText("Ana Pérez (2)").performClick(); compose.onNodeWithText("Bloquear").performClick()
+        assertTrue(state.isBlocked("0991234567")); compose.onNodeWithText("Desbloquear").assertExists()
+        state.page = Page.SETTINGS
+        compose.onNodeWithText("Filtro de llamadas no deseadas").assertExists(); compose.onNodeWithText("Desactivado").assertExists()
+        compose.onNodeWithText("Grabación automática de llamadas").performScrollTo().assertExists()
+        shot("settings-calls")
+        compose.onNodeWithText("Configuración de llamadas del sistema").performScrollTo().performClick()
+        compose.onNodeWithText("Sonidos y vibración").performScrollTo().performClick()
+        compose.onNodeWithText("Configuración de SIM y red").performScrollTo().performClick()
+        assertEquals(listOf(SystemPage.CALLS, SystemPage.SOUNDS, SystemPage.SIM_NETWORK), opened)
+        compose.onNodeWithText("Anuncio de voz de llamada entrante").performScrollTo().performClick()
+        compose.onNode(isDialog()).captureRoboImage("build/screenshots/telefono-announce.png")   // a dialog is its own window
+        compose.onNodeWithText("Solo con auriculares").performClick(); assertEquals(AnnounceMode.HEADPHONES, state.announce)
+        compose.onNodeWithText("Filtro de llamadas no deseadas").performScrollTo().performClick()
+        compose.onNodeWithText("Usar Teléfono como filtro").performClick(); assertEquals(1, asked)
+        state.role = Role.ON; compose.onNodeWithText("Teléfono es tu filtro de llamadas").assertExists()
+        compose.onNodeWithText("Bloquear números ocultos y privados").performClick(); assertTrue(state.blockHidden)
+        compose.onNodeWithText("Silenciar").performClick(); assertEquals(Unknown.SILENCE, state.unknown)
+        shot("filter")
+        compose.onNodeWithText("Bloqueados").performClick()
+        compose.onNodeWithText("Ana Pérez").assertExists()
+        compose.onNode(hasSetTextAction()).performTextInput("+593 98 000 0000"); compose.onNodeWithContentDescription("Bloquear").performClick()
+        assertEquals(listOf("+593980000000", "0991234567"), state.blocked)
+        shot("blocked")
+        compose.onNodeWithContentDescription("Desbloquear Ana Pérez").performClick(); assertFalse(state.isBlocked("0991234567"))
+        state.page = Page.SETTINGS
+        compose.onNodeWithText("Marcación rápida").performScrollTo().performClick()
+        compose.onNodeWithText("Buzón de voz").assertExists()
+        compose.onAllNodesWithText("Sin asignar")[3].performClick()                              // key 5
+        compose.onNodeWithText("Tecla 5").assertExists()
+        compose.onNode(hasSetTextAction()).performTextInput("ana")
+        shot("speed-pick")
+        compose.onNodeWithText("Ana Pérez").performClick()
+        assertEquals(listOf(Speed('5', "0991234567", "Ana Pérez")), state.speed)
+        shot("speed")
+        state.page = Page.SETTINGS
+        compose.onNodeWithText("Características del operador").performScrollTo().performClick()
+        compose.onNodeWithText("Claro EC").assertExists(); compose.onNodeWithText("Ranura 1 · Claro").assertExists(); compose.onNodeWithText("Ranura 2").assertExists()
+        compose.onAllNodesWithText("SIM 2")[0].performClick(); assertEquals(SimChoice.SIM2, state.defaultSim)
+        compose.onNodeWithText("Por defecto").assertExists()
+        shot("carrier")
+        state.page = Page.MAIN; state.tab = Tab.KEYPAD
+        compose.onNodeWithContentDescription("5").performTouchInput { longClick() }
+        assertEquals("0991234567" to 2, called.last())
+        compose.onNodeWithContentDescription("8").performTouchInput { longClick() }
+        assertEquals(Page.SPEED, state.page); assertEquals('8', state.assigning)
     }
 }

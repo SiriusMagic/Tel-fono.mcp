@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zirakusa.telefono.R
 import com.zirakusa.telefono.data.CallType
+import com.zirakusa.telefono.data.Filter
 import com.zirakusa.telefono.data.Group
 import com.zirakusa.telefono.data.Numbers
 import com.zirakusa.telefono.ui.AppActions
@@ -97,7 +98,7 @@ val Missed = Color(0xFFFF6B6B)
         Column(Modifier.weight(1f).padding(start = 14.dp)) {
             Text((name.ifBlank { Numbers.pretty(c.number).ifBlank { stringResource(R.string.private_number) } }) + if (g.count > 1) " (${g.count})" else "",
                 fontSize = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (g.missed) Missed else TelefonoColors.Text)
-            val sub = c.label.ifBlank { if (name.isNotBlank()) Numbers.pretty(c.number) else "" }
+            val sub = if (c.type == CallType.BLOCKED) stringResource(R.string.t_blocked) else c.label.ifBlank { if (name.isNotBlank()) Numbers.pretty(c.number) else "" }
             val slot = state.slotOf(c)
             if (sub.isNotBlank() || slot != null) Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (slot != null) SimBadge(slot, Modifier.padding(end = 5.dp))
@@ -113,6 +114,10 @@ val Missed = Color(0xFFFF6B6B)
         Small(Icons.Outlined.Sms, R.string.message) { actions.sms(c.number) }
         Small(Icons.Outlined.ContentCopy, R.string.copy) { actions.copy(c.number) }
         if (name.isBlank()) Small(Icons.Outlined.PersonAdd, R.string.add_contact) { actions.addContact(c.number) }
+        if (Filter.canBlock(c.number)) {
+            if (state.isBlocked(c.number)) Small(Icons.Outlined.Block, R.string.unblock) { state.unblock(c.number) }
+            else Small(Icons.Outlined.Block, R.string.block) { state.block(c.number) }
+        }
     }
 }
 

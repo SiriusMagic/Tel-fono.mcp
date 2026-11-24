@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zirakusa.telefono.R
 import com.zirakusa.telefono.data.Dial
+import com.zirakusa.telefono.data.Filter
 import com.zirakusa.telefono.data.Numbers
 import com.zirakusa.telefono.ui.AppActions
 import com.zirakusa.telefono.ui.TelefonoState
@@ -41,7 +42,7 @@ import com.zirakusa.telefono.ui.theme.TelefonoColors
 
 /**
  * The page of a number (ⓘ in «Recientes»): the big letter, the name, «Llamar con SIM n (por defecto)», its numbers with
- * Llamar · Mensaje · WhatsApp, and every call with it. Editing or saving the contact goes to Contactos (or the phone's).
+ * Llamar · Mensaje · WhatsApp, «Bloquear este número», and every call with it. Editing or saving the contact goes to Contactos (or the phone's).
  */
 @Composable fun DetailScreen(state: TelefonoState, actions: AppActions) {
     val number = state.detail ?: return
@@ -69,6 +70,10 @@ import com.zirakusa.telefono.ui.theme.TelefonoColors
             Divider()
             val wa = Numbers.wa(number)
             if (state.whatsapp && wa != null) Item(stringResource(R.string.whatsapp), null, value = Numbers.pretty("+$wa")) { actions.whatsapp(wa) }
+            if (Filter.canBlock(number)) {
+                if (state.isBlocked(number)) Item(stringResource(R.string.unblock_number), null) { state.unblock(number) }
+                else Item(stringResource(R.string.block_number), null) { state.block(number) }
+            }
         }
         HistoryList(state, history)
         Spacer(Modifier.size(24.dp))
