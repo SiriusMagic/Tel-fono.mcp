@@ -1,13 +1,15 @@
 <!-- «Contactos» widget (4×2): the title opens Contactos, the green button Teléfono, + a new contact; up to four favourites
      below (a tap opens Teléfono with their number ready; nothing calls by itself). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/c_widget_root"
     android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
     android:background="@drawable/c_widget_bg" android:paddingHorizontal="16dp" android:paddingVertical="12dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical"
         android:orientation="horizontal">
+        <!-- The icon is the one chosen in Contactos (setImageViewResource), at 32 dp: a compound drawable could not size it. -->
         <LinearLayout android:id="@+id/c_widget_title" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1"
-            android:gravity="center_vertical" android:orientation="horizontal">
+            android:gravity="center_vertical" android:orientation="horizontal" tools:ignore="UseCompoundDrawables">
             <ImageView android:id="@+id/c_widget_icon" android:layout_width="32dp" android:layout_height="32dp" android:src="@mipmap/c_ic_launcher"
                 android:importantForAccessibility="no" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp"

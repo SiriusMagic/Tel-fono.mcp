@@ -12,14 +12,12 @@ import com.zirakusa.telefono.data.Settings
 import com.zirakusa.telefono.data.SharedValues
 
 /**
- * Ajustes › Modo MCP, as in the rest of the family: «Activar MCP» with the user's tokens
- * (LLM or Hub), or «Redireccionar a Hub», where only the hub's own token is served. Off by default. Runs while the app
- * is alive.
+ * The Modo MCP, run by Arka (same developer, through [HubLinkProvider]): «connect» turns the public link on (the relay,
+ * with Arka's own token, so the hub decides who may do what) and «disconnect» turns it off. Lucía calls the tools on the
+ * phone with [local], without internet. Off by default; nothing to set up in this app.
  */
 object McpMode {
-    var enabled by mutableStateOf(false); private set
-    var hubRedirect by mutableStateOf(false); private set
-    var tokens by mutableStateOf(emptyList<Token>()); private set
+    var remote by mutableStateOf(false); private set
     var state by mutableStateOf(RelayLink.State.OFFLINE); private set
     /** Called on the main thread after a tool changed the places or got a new forecast, so the screen reloads them. */
     var onChanged: () -> Unit = {}
@@ -28,18 +26,19 @@ object McpMode {
     private var link: RelayLink? = null
     private var device = ""
     private var relaySecret = ""
+    private var token = Token("")
     internal var relayUrl: String = BuildConfig.RELAY_URL
-    val active get() = enabled || hubRedirect
-    /** The tokens the user manages (the redirect token is never listed). */
-    val listed get() = tokens.filter { it.kind != Kind.REDIRECT }
 
     fun load(context: Context) {
         if (prefs != null) return
         val app = context.applicationContext
         val p = app.getSharedPreferences("mcp", Context.MODE_PRIVATE)
         prefs = p
-        enabled = p.getBoolean("enabled", false); hubRedirect = p.getBoolean("redirect", false)
-        tokens = Token.parse(SecretBox.open(p.getString("tokens", "") ?: "").ifBlank { "[]" })
+        remote = p.getBoolean("redirect", false)
+        token = Token(SecretBox.open(p.getString("arka", "") ?: "").ifBlank {
+            (Legacy.redirectSecret(SecretBox.open(p.getString("tokens", "") ?: "")) ?: Token.secret())
+                .also { p.edit { putString("arka", SecretBox.seal(it)); remove("tokens"); remove("enabled") } }
+        })
         device = p.getString("device", null) ?: Token.id().repeat(2).also { p.edit { putString("device", it) } }
         relaySecret = SecretBox.open(p.getString("relay", "") ?: "").ifBlank {
             Token.secret().also { p.edit { putString("relay", SecretBox.seal(it)) } }
@@ -49,58 +48,28 @@ object McpMode {
         apply()
     }
 
-    fun enable(on: Boolean) { enabled = on; prefs?.edit { putBoolean("enabled", on) }; apply() }
-    fun redirect(on: Boolean) { hubRedirect = on; prefs?.edit { putBoolean("redirect", on) }; if (on) redirectToken(); apply() }
+    /** Arka's «Activar MCP» for this app: the public link on or off. */
+    fun turnRemote(on: Boolean) { remote = on; prefs?.edit { putBoolean("redirect", on) }; apply() }
 
-    fun create(name: String, access: Access, kind: Kind, usage: String, days: Int): Token {
-        val now = System.currentTimeMillis()
-        return Token(Token.id(), name.trim().take(40).ifEmpty { "Agente ${listed.size + 1}" }, Token.secret(), access, kind,
-            usage.trim().take(Token.USAGE_MAX), now, if (days > 0) now + days * 86_400_000L else 0).also { save(tokens + it) }
-    }
-    fun setPaused(id: String, paused: Boolean) = save(tokens.map { if (it.id == id) it.copy(paused = paused) else it })
-    fun revoke(id: String) = save(tokens.filterNot { it.id == id })
-
-    /** The hub's token while redirecting: full access, never expires, never listed. */
-    fun redirectToken(): Token = tokens.firstOrNull { it.kind == Kind.REDIRECT }
-        ?: Token(Token.id(), "Gateway Hub", Token.secret(), Access.WRITE, Kind.REDIRECT, "Redireccionar a Hub", System.currentTimeMillis())
-            .also { save(tokens + it) }
-
-    fun served(): List<Token> = tokens.filter { (it.kind == Kind.REDIRECT) == hubRedirect }
-    fun linkFor(secret: String) = "${relayUrl.trimEnd('/')}/d/$device/mcp?token=$secret"
-    fun hubLink() = linkFor(redirectToken().secret)
-
-    private fun save(list: List<Token>) { tokens = list; prefs?.edit { putString("tokens", SecretBox.seal(Token.serialize(list))) } }
+    fun hubLink() = "${relayUrl.trimEnd('/')}/d/$device/mcp?token=${token.secret}"
 
     private var data: PhoneData? = null
     private var contacts: com.zirakusa.contactos.mcp.ContactData? = null
 
-    /** «Conectar todas» in Gateway Hub (the user's tap there): turns «Redireccionar a Hub» on here. */
-    fun connectFromHub() { if (!hubRedirect) redirect(true) }
-
-    /**
-     * Lucía (Gateway Hub's voice on this phone) runs one tool without internet, with the hub's own token: the same checks
-     * and rules as through the relay. Only while «Redireccionar a Hub» is on. [body] is a JSON-RPC request, so is the answer.
-     */
+    /** One JSON-RPC request from Lucía on this phone, through the same handler as the relay. Null before [load]. */
     fun local(body: String): String? {
         val d = data ?: return null
-        if (!hubRedirect) return null
-        val token = redirectToken()
         return kotlinx.coroutines.runBlocking {
-            McpHandler(::served, d, BuildConfig.VERSION_NAME, onUsed = ::touch, contacts = contacts).handle("POST", "/mcp", mapOf("Authorization" to "Bearer ${token.secret}"), emptyMap(), body).body
+            McpHandler({ listOf(token) }, d, BuildConfig.VERSION_NAME, contacts = contacts).handle("POST", "/mcp", mapOf("Authorization" to "Bearer ${token.secret}"), emptyMap(), body).body
         }
     }
 
     private fun apply() {
         val d = data ?: return
-        if (active && relayUrl.isNotBlank()) {
+        if (remote && relayUrl.isNotBlank()) {
             if (link == null) link = RelayLink(relayUrl, device, relaySecret,
-                McpHandler(::served, d, BuildConfig.VERSION_NAME, onUsed = ::touch, contacts = contacts)) { state = it }.also { it.start() }
+                McpHandler({ listOf(token) }, d, BuildConfig.VERSION_NAME, contacts = contacts)) { state = it }.also { it.start() }
         } else { link?.stop(); link = null; state = RelayLink.State.OFFLINE }
-    }
-
-    private fun touch(token: Token) {
-        val now = System.currentTimeMillis()
-        if (now - token.lastUsedAt > 60_000) save(tokens.map { if (it.id == token.id) it.copy(lastUsedAt = now) else it })
     }
 }
 

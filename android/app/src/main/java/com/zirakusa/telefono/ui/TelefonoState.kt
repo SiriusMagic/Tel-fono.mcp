@@ -26,7 +26,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 enum class Tab { RECENTS, KEYPAD, FAVORITES }
-enum class Page { MAIN, SETTINGS, MCP, DETAIL, FILTER, BLOCKED, SPEED, CARRIER }
+enum class Page { MAIN, SETTINGS, DETAIL, FILTER, BLOCKED, SPEED, CARRIER }
 
 /** The call screening role of Android («Filtro de llamadas»): not on this Android (before 10), not granted, or granted. */
 enum class Role { UNSUPPORTED, OFF, ON }

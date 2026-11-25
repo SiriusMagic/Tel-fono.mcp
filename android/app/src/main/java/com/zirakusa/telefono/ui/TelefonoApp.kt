@@ -36,7 +36,6 @@ import com.zirakusa.telefono.ui.screens.FilterScreen
 import com.zirakusa.telefono.ui.screens.SpeedScreen
 import com.zirakusa.telefono.ui.screens.FavoritesScreen
 import com.zirakusa.telefono.ui.screens.KeypadScreen
-import com.zirakusa.telefono.ui.screens.McpScreen
 import com.zirakusa.telefono.ui.screens.RecentsScreen
 import com.zirakusa.telefono.ui.screens.SettingsScreen
 import com.zirakusa.telefono.ui.screens.SimDialog
@@ -57,8 +56,7 @@ class AppActions(
     val addContact: (String) -> Unit = {},
     val copy: (String) -> Unit = {},
     val tone: (Char) -> Unit = {},
-    val copyLink: (String) -> Unit = {},
-    val goToHub: () -> Unit = {},
+    val openArka: () -> Unit = {},
     /** Asks Android for the call screening role («Filtro de llamadas no deseadas»). */
     val askScreening: () -> Unit = {},
     /** Opens one of Android's own settings pages. */
@@ -84,7 +82,6 @@ fun TelefonoState.longPress(key: Char, actions: AppActions) {
     SimDialog(state, actions)
     when (state.page) {
         Page.SETTINGS -> return SettingsScreen(state, actions)
-        Page.MCP -> return McpScreen(actions.copyLink, actions.goToHub) { state.page = Page.SETTINGS }
         Page.DETAIL -> return DetailScreen(state, actions)
         Page.FILTER -> return FilterScreen(state, actions)
         Page.BLOCKED -> return BlockedScreen(state)

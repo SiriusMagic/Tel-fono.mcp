@@ -6,7 +6,6 @@ import com.zirakusa.contactos.mcp.ContactData
 import com.zirakusa.telefono.Book
 import com.zirakusa.telefono.data.MemoryBook
 import com.zirakusa.telefono.mcp.Access
-import com.zirakusa.telefono.mcp.Kind
 import com.zirakusa.telefono.mcp.McpHandler
 import com.zirakusa.telefono.mcp.PhoneData
 import com.zirakusa.telefono.mcp.Token
@@ -38,10 +37,9 @@ class McpTest {
         override val book = MemoryBook(Book.calls, Book.people, Book.sims)
         override fun askToCall(who: String, number: String, name: String) = true
     }
-    private val writer = Token("w", "Claude", "tel_" + "w".repeat(40), Access.WRITE, Kind.HUB, "Teléfono")
-    private val reader = Token("r", "Lector", "tel_" + "r".repeat(40), Access.READ)
-    private val paused = Token("p", "Viejo", "tel_" + "p".repeat(40), Access.WRITE, paused = true)
-    private val handler = McpHandler({ listOf(writer, reader, paused) }, phone, "0.1.0", contacts = data)
+    private val writer = Token("tel_" + "w".repeat(40), Access.WRITE)
+    private val reader = Token("tel_" + "r".repeat(40), Access.READ)
+    private val handler = McpHandler({ listOf(writer, reader) }, phone, "0.1.0", contacts = data)
 
     private fun rpc(token: Token, method: String, params: JSONObject = JSONObject()) = runBlocking {
         JSONObject(handler.handle("POST", "/mcp", mapOf("Authorization" to "Bearer ${token.secret}"), emptyMap(),
@@ -103,7 +101,7 @@ class McpTest {
 
     @Test fun pausedTokensReachNoContacts() = runBlocking {
         val body = """{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"contacts_favorites","arguments":{}}}"""
-        assertEquals(401, handler.handle("POST", "/mcp", mapOf("Authorization" to "Bearer ${paused.secret}"), emptyMap(), body).status)
+        assertEquals(401, handler.handle("POST", "/mcp", mapOf("Authorization" to "Bearer wrong_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"), emptyMap(), body).status)
         assertEquals(401, handler.handle("POST", "/mcp", mapOf("Authorization" to "Bearer tel_wrong"), emptyMap(), body).status)
     }
 }

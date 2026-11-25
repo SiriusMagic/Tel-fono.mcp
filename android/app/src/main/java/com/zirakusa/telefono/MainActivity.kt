@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
             // Saving and editing contacts happens in Contactos, inside this same app (the phone may have no other contacts app).
             addContact = { open(Intent(ContactsContract.Intents.Insert.ACTION).setClass(this, com.zirakusa.contactos.MainActivity::class.java)
                 .putExtra(ContactsContract.Intents.Insert.PHONE, it)) },
-            copy = { copy("Teléfono", it) }, tone = ::tone, copyLink = { copy("Teléfono MCP", it) }, goToHub = ::goToHub,
+            copy = { copy("Teléfono", it) }, tone = ::tone, openArka = ::openArka,
             whatsapp = ::whatsapp, contacts = ::contacts, askScreening = ::askScreening, system = ::system,
             editContact = { open(Intent(this, com.zirakusa.contactos.MainActivity::class.java).putExtra(com.zirakusa.contactos.MainActivity.EXTRA_EDIT, it)) })
         reload()
@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                 SideEffect { WindowCompat.getInsetsController(window, window.decorView).run { isAppearanceLightStatusBars = light; isAppearanceLightNavigationBars = light } }
                 BackHandler(state.page != Page.MAIN || state.tab != Tab.RECENTS) {
                     when (state.page) {
-                        Page.MCP, Page.FILTER, Page.CARRIER -> state.page = Page.SETTINGS; Page.SETTINGS -> state.page = Page.MAIN
+                        Page.FILTER, Page.CARRIER -> state.page = Page.SETTINGS; Page.SETTINGS -> state.page = Page.MAIN
                         Page.DETAIL -> state.closeDetail(); Page.BLOCKED -> state.page = Page.FILTER
                         Page.SPEED -> if (state.assigning != null) state.assigning = null else state.page = Page.SETTINGS
                         Page.MAIN -> state.tab = Tab.RECENTS
@@ -168,10 +168,9 @@ class MainActivity : ComponentActivity() {
         Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
-    /** «Ir al Hub»: copies the hub's link (in case it must be pasted) and opens the Gateway Hub app. */
-    private fun goToHub() {
-        copy("Teléfono › Gateway Hub", McpMode.hubLink())
-        val hub = packageManager.getLaunchIntentForPackage("com.zirakusa.gatewayhub")
-        if (hub != null) startActivity(hub) else Toast.makeText(this, R.string.mcp_paste_in_hub, Toast.LENGTH_LONG).show()
+    /** «Modo MCP» in Ajustes: it is turned on, allowed on the phone and given tokens in Arka, so this opens Arka. */
+    private fun openArka() {
+        val open = packageManager.getLaunchIntentForPackage("com.zirakusa.gatewayhub")
+        if (open != null) startActivity(open) else Toast.makeText(this, R.string.mcp_no_arka, Toast.LENGTH_LONG).show()
     }
 }
