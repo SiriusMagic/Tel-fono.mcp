@@ -18,10 +18,14 @@ import com.zirakusa.contactos.data.Order
 import com.zirakusa.contactos.data.Phone
 import com.zirakusa.contactos.data.Phones
 import com.zirakusa.contactos.data.Raw
+import com.zirakusa.contactos.data.SaveFailed
 import com.zirakusa.contactos.data.Settings
 import com.zirakusa.contactos.ui.theme.Accent
 import com.zirakusa.contactos.ui.theme.ThemeMode
 import java.time.LocalDate
+
+/** Why «Guardar» didn't save: Android hasn't let Contactos change contacts yet, or it refused this one. */
+enum class SaveError { PERMISSION, FAILED }
 
 /** The list, or a page over it. */
 enum class Page { LIST, DETAIL, EDIT, PICK, CARD, DUPLICATES, SETTINGS }
@@ -62,6 +66,8 @@ class ContactosState(kv: KeyValues, private val store: ContactStore, private val
     var query by mutableStateOf("")
     var shown by mutableStateOf<Contact?>(null); private set
     var draft by mutableStateOf(Draft())
+    /** The last «Guardar» failed (the editor says why and stays open with what was typed). */
+    var saveError by mutableStateOf<SaveError?>(null); private set
     var order by mutableStateOf(settings.order); private set
     var themeMode by mutableStateOf(settings.theme?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.BLACK); private set
     var accent by mutableStateOf(settings.accent?.let { runCatching { Accent.valueOf(it) }.getOrNull() } ?: Accent.ROSA); private set
@@ -108,7 +114,7 @@ class ContactosState(kv: KeyValues, private val store: ContactStore, private val
             draft = Draft(name = query.takeIf { q -> q.none(Char::isDigit) }.orEmpty(),
                 phones = listOf(query.takeIf { q -> q.isNotBlank() && q.all { it.isDigit() || it in "+ " } }.orEmpty()),
                 account = storage.takeIf { it in accounts } ?: accounts.first())
-            page = Page.EDIT
+            saveError = null; page = Page.EDIT
         } else if (c.raws.size > 1) { shown = c; page = Page.PICK } else editPart(c, c.raws.firstOrNull()?.id)
     }
 
@@ -118,18 +124,35 @@ class ContactosState(kv: KeyValues, private val store: ContactStore, private val
     /** Edits only [raw]'s data (one account), so the other parts stay as they are. */
     fun editPart(c: Contact, raw: Long?) {
         val part = raw?.let { r -> runCatching { store.part(r) }.getOrNull() }?.copy(id = c.id, starred = c.starred)
-        draft = Draft.of(part ?: c); page = Page.EDIT
+        draft = Draft.of(part ?: c); saveError = null; page = Page.EDIT
     }
 
     /** «Guardar»: saves and shows it; null while there is a [Draft.problem]. */
     fun save(): Contact? {
         if (draft.problem != null) return null
-        val saved = try { store.save(draft.toContact()) } catch (_: NoAccess) { allowed = false; return null }
+        val saved = try { store.save(draft.toContact()) } catch (_: NoAccess) { saveError = SaveError.PERMISSION; return null }
+            catch (_: SaveFailed) { saveError = SaveError.FAILED; return null }
+        saveError = null
         load(); shown = items.firstOrNull { it.id == saved.id } ?: saved; page = Page.DETAIL; query = ""
         return saved
     }
 
-    fun cancelEdit() { page = if (draft.id != 0L && shown != null) Page.DETAIL else Page.LIST }
+    /**
+     * «Nuevo contacto» with a number (and maybe a name) from Teléfono, the widget or another app («Añadir a contactos»).
+     * Only fills the editor: nothing is saved until the user taps «Guardar».
+     */
+    fun newContact(phone: String?, name: String? = null) {
+        query = ""; edit()
+        draft = draft.copy(name = name?.trim()?.take(Contact.NAME_MAX).orEmpty(), phones = listOf(phone?.let(com.zirakusa.contactos.data.Phones::clean).orEmpty()))
+    }
+
+    /** Android answered the permission request: if «Guardar» was waiting for it, try again with what was typed. */
+    fun allowedNow() {
+        load()
+        if (page == Page.EDIT && saveError == SaveError.PERMISSION) save()
+    }
+
+    fun cancelEdit() { saveError = null; page = if (draft.id != 0L && shown != null) Page.DETAIL else Page.LIST }
     fun star(c: Contact) { runCatching { store.star(c.id, !c.starred) }; load() }
     /** Only the user deletes, after confirming; the AI never can. */
     fun delete(c: Contact) { runCatching { store.delete(c.id) }; shown = null; page = Page.LIST; load() }

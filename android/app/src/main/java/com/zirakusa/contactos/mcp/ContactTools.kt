@@ -145,9 +145,10 @@ object ContactTools {
  * change is shown on the contacts screen through [ContactTools.onChanged].
  */
 class ContactLiveData(context: android.content.Context) : ContactData {
+    private val app = context.applicationContext
     override val store = com.zirakusa.contactos.AndroidStore(context)
     private val settings = com.zirakusa.contactos.data.Settings(com.zirakusa.contactos.data.SharedValues(context))
     override fun account() = settings.storage
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
-    override fun changed() { main.post { ContactTools.onChanged() } }
+    override fun changed() { main.post { ContactTools.onChanged(); com.zirakusa.contactos.ContactsWidget.refresh(app) } }
 }

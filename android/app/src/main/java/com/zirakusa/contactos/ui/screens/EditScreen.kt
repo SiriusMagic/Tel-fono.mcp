@@ -22,12 +22,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.zirakusa.telefono.R
+import com.zirakusa.contactos.ui.AppActions
 import com.zirakusa.contactos.ui.ContactosState
+import com.zirakusa.contactos.ui.SaveError
 import com.zirakusa.contactos.ui.Draft
 import com.zirakusa.contactos.ui.theme.ContactosColors
 
 /** «Nuevo contacto» / «Editar»: name, numbers and emails (a new empty line appears as you fill the last), company, birthday, address, note. */
-@Composable fun EditScreen(state: ContactosState) = Sheet(stringResource(if (state.draft.id == 0L) R.string.c_new_contact else R.string.c_edit), onClose = state::cancelEdit) {
+@Composable fun EditScreen(state: ContactosState, actions: AppActions = AppActions()) = Sheet(stringResource(if (state.draft.id == 0L) R.string.c_new_contact else R.string.c_edit), onClose = state::cancelEdit) {
     val d = state.draft
     fun set(next: Draft) { state.draft = next }
     var picking by remember { mutableStateOf(false) }
@@ -47,7 +49,18 @@ import com.zirakusa.contactos.ui.theme.ContactosColors
         when (d.problem) {
             Draft.Problem.EMPTY -> Text(stringResource(R.string.c_need_name), color = ContactosColors.Muted)
             Draft.Problem.BIRTHDAY -> Text(stringResource(R.string.c_bad_birthday), color = ContactosColors.Danger)
-            null -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { MainButton(stringResource(R.string.c_save)) { state.save() } }
+            null -> {
+                // A failed «Guardar» says why here, with what was typed still in place.
+                when (state.saveError) {
+                    SaveError.PERMISSION -> Text(stringResource(R.string.c_save_need_permission), color = ContactosColors.Danger)
+                    SaveError.FAILED -> Text(stringResource(R.string.c_save_failed), color = ContactosColors.Danger)
+                    null -> {}
+                }
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    if (state.saveError == SaveError.PERMISSION) MainButton(stringResource(R.string.c_allow), onClick = actions.allow)
+                    else MainButton(stringResource(R.string.c_save)) { state.save() }
+                }
+            }
         }
         TextButton(state::cancelEdit, Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.c_cancel), color = ContactosColors.Text) }
     }

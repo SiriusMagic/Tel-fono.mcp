@@ -114,5 +114,28 @@
     <string name="c_blocked_numbers_hint">La lista de bloqueados del teléfono</string>
     <plurals name="c_contacts_n"><item quantity="one">%1$d contacto</item><item quantity="many">%1$d contactos</item><item quantity="other">%1$d contactos</item></plurals>
 
-    <color name="c_launcher_background">#2A1520</color>
+    <!-- «Guardar» that didn't save. -->
+    <string name="c_save_need_permission">Para guardar, Android tiene que dejar que Contactos cambie tus contactos. Toca «Permitir».</string>
+    <string name="c_save_failed">No se pudo guardar en esa cuenta. Prueba otra en «Guardar en».</string>
+    <!-- The home-screen widget. -->
+    <string name="c_widget_desc">Tus favoritos, Teléfono y «Nuevo contacto» a un toque</string>
+    <string name="c_widget_empty">Marca contactos con ★ para verlos aquí</string>
+    <string name="c_widget_no_access">Abre Contactos para permitir el acceso</string>
+    <string name="c_widget_add">Añadir widget a la pantalla de inicio</string>
+    <string name="c_widget_add_hint">Favoritos, Teléfono y «Nuevo contacto»</string>
+    <string name="c_widget_cannot">Tu pantalla de inicio no deja añadirlo desde aquí: mantén pulsado un espacio vacío › Widgets › Contactos.</string>
+    <!-- Ajustes › Icono de Contactos (the Contactos icon on the home screen). -->
+    <string name="c_icon_title">Icono de Contactos</string>
+    <string name="c_icon_pixel">Píxel</string>
+    <string name="c_icon_cartoon">Dibujo</string>
+    <string name="c_icon_oil">Óleo</string>
+    <string name="c_icon_clay">3D</string>
+    <string name="c_icon_glass">Cristal</string>
+
+    <!-- Behind each Contactos launcher icon (Ajustes de Contactos › Icono de Contactos); «Píxel» is the default. -->
+    <color name="c_launcher_background_pixel">#0042F7</color>
+    <color name="c_launcher_background_cartoon">#F87302</color>
+    <color name="c_launcher_background_oil">#BF2D0C</color>
+    <color name="c_launcher_background_clay">#035ED8</color>
+    <color name="c_launcher_background_glass">#0183CB</color>
 </resources>

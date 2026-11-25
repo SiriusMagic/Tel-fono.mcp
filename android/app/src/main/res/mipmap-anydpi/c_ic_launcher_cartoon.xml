@@ -1,0 +1,5 @@
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/c_launcher_background_cartoon" />
+    <foreground android:drawable="@mipmap/c_ic_launcher_cartoon_foreground" />
+    <monochrome android:drawable="@drawable/c_ic_monochrome" />
+</adaptive-icon>

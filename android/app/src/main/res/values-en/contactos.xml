@@ -112,4 +112,19 @@
     <string name="c_blocked_numbers">Blocked numbers</string>
     <string name="c_blocked_numbers_hint">The phone\'s blocked list</string>
     <plurals name="c_contacts_n"><item quantity="one">%1$d contact</item><item quantity="other">%1$d contacts</item></plurals>
+
+    <string name="c_save_need_permission">To save, Android has to let Contactos change your contacts. Tap «Allow».</string>
+    <string name="c_save_failed">Couldn\'t save in that account. Try another one in «Save to».</string>
+    <string name="c_widget_desc">Your favourites, Phone and «New contact» one tap away</string>
+    <string name="c_widget_empty">Star contacts to see them here</string>
+    <string name="c_widget_no_access">Open Contactos to allow access</string>
+    <string name="c_widget_add">Add widget to the home screen</string>
+    <string name="c_widget_add_hint">Favourites, Phone and «New contact»</string>
+    <string name="c_widget_cannot">Your home screen can\'t add it from here: long-press an empty space › Widgets › Contactos.</string>
+    <string name="c_icon_title">Contactos icon</string>
+    <string name="c_icon_pixel">Pixel</string>
+    <string name="c_icon_cartoon">Cartoon</string>
+    <string name="c_icon_oil">Oil</string>
+    <string name="c_icon_clay">3D</string>
+    <string name="c_icon_glass">Glass</string>
 </resources>

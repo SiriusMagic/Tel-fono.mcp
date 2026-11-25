@@ -114,11 +114,11 @@
     <string name="edit_contact">Edit contact</string>
     <string name="new_contact">Create contact</string>
     <string name="icon_title">App icon</string>
-    <string name="icon_original">Original</string>
-    <string name="icon_light">Light</string>
-    <string name="icon_gold">Gold</string>
-    <string name="icon_blue">Blue</string>
-    <string name="icon_green">Green</string>
+    <string name="icon_clay">3D</string>
+    <string name="icon_pixel">Pixel</string>
+    <string name="icon_oil">Oil</string>
+    <string name="icon_glass">Glass</string>
+    <string name="icon_classic">Classic</string>
     <string name="icon_hint">Changes the home-screen icon. Some launchers take a few seconds to show it.</string>
     <string name="calls_caption">Calls</string>
     <string name="android_caption">Android settings</string>

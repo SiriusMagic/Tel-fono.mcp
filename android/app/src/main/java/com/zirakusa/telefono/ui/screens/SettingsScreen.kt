@@ -86,7 +86,7 @@ import com.zirakusa.telefono.ui.theme.TelefonoColors
             }
             Item(stringResource(R.string.mcp_title), "$status · ${stringResource(R.string.mcp_settings_hint)}") { state.page = Page.MCP }
         }
-        IconCard(TelefonoColors.Card, TelefonoColors.Text, TelefonoColors.Muted, TelefonoColors.Accent, androidx.compose.ui.graphics.Color(0xFF07160D))
+        IconCard(TelefonoColors.Card, TelefonoColors.Text, TelefonoColors.Muted, TelefonoColors.Accent)
         ThemeCard(state.themeMode, state.accent, state::changeTheme, state::changeAccent)
         Caption(stringResource(R.string.about))
         Group {

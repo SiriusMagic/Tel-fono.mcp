@@ -55,6 +55,7 @@ import com.zirakusa.contactos.ui.Page
         Divider()
         Item(stringResource(R.string.c_blocked_numbers), stringResource(R.string.c_blocked_numbers_hint), onClick = actions.blockedNumbers)
     }
+    Group { Item(stringResource(R.string.c_widget_add), stringResource(R.string.c_widget_add_hint), onClick = actions.addWidget) }
     when (picking) {
         R.string.c_show_contacts -> AccountDialog(stringResource(R.string.c_show_contacts), state.accounts, state.showOnly, stringResource(R.string.c_show_all), { picking = null }) {
             picking = null; state.changeShowOnly(it)

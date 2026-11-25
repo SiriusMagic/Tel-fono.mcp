@@ -9,6 +9,7 @@ import android.content.ClipboardManager
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.Bundle
@@ -24,6 +25,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.SideEffect
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.IntentCompat
 import androidx.core.net.toUri
@@ -47,7 +49,7 @@ import kotlin.concurrent.thread
 class MainActivity : ComponentActivity() {
     private lateinit var state: ContactosState
     private lateinit var store: AndroidStore
-    private val allow = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { state.load() }
+    private val allow = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { state.allowedNow(); ContactsWidget.refresh(this) }
     private var ringFor: Contact? = null
     private val pickRing = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         val c = ringFor ?: return@registerForActivityResult
@@ -61,6 +63,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ContactsIcon.load(this)
         enableEdgeToEdge()
         store = AndroidStore(this)
         state = ContactosState(SharedValues(this), store)
@@ -76,9 +79,12 @@ class MainActivity : ComponentActivity() {
             blockedNumbers = ::blockedList, editProfile = { c -> open(Intent(Intent.ACTION_EDIT, ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, c.id))) },
             importCards = { launch { importer.launch(arrayOf("text/x-vcard", "text/vcard", "text/directory", "application/octet-stream")) } },
             exportCards = { launch { exporter.launch("contactos.vcf") } }, toast = ::toast,
-            copy = { copy("Contacto", it, R.string.c_copied) })
+            copy = { copy("Contacto", it, R.string.c_copied) }, addWidget = { if (!ContactsWidget.pin(this)) Toast.makeText(this, R.string.c_widget_cannot, Toast.LENGTH_LONG).show() })
         state.load()
-        if (!state.allowed) ask()
+        // Reading isn't enough to save: Teléfono asks only to read, so «modify contacts» is asked here (Android grants it
+        // without asking again when reading is already allowed).
+        if (!state.allowed || !granted(Manifest.permission.WRITE_CONTACTS)) ask()
+        handle(intent)
         setContent {
             ContactosTheme(state.themeMode, state.accent) {
                 val light = ContactosColors.isLight
@@ -96,6 +102,35 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onResume() { super.onResume(); if (state.page != Page.EDIT) state.load() }
+    override fun onPause() { super.onPause(); ContactsWidget.refresh(this) }
+    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); handle(intent) }
+
+    private fun granted(p: String) = ContextCompat.checkSelfPermission(this, p) == PackageManager.PERMISSION_GRANTED
+
+    /**
+     * What opened Contactos: «Añadir a contactos» (from Teléfono, the widget or another app) fills «Nuevo contacto» with
+     * the number and name it brings; Teléfono's «Editar» opens that contact's editor; the widget opens a contact. Nothing
+     * is saved until the user taps «Guardar».
+     */
+    private fun handle(intent: Intent?) {
+        intent ?: return
+        when {
+            intent.action == ContactsContract.Intents.Insert.ACTION ->
+                state.newContact(intent.getStringExtra(ContactsContract.Intents.Insert.PHONE), intent.getStringExtra(ContactsContract.Intents.Insert.NAME))
+            intent.getLongExtra(EXTRA_EDIT, 0L) != 0L -> state.items.firstOrNull { it.id == intent.getLongExtra(EXTRA_EDIT, 0L) }?.let(state::edit)
+            intent.getLongExtra(EXTRA_OPEN, 0L) != 0L -> state.items.firstOrNull { it.id == intent.getLongExtra(EXTRA_OPEN, 0L) }?.let(state::open)
+            else -> return
+        }
+        // Handled once: turning the screen or coming back doesn't open the editor again.
+        setIntent(Intent(this, MainActivity::class.java).setAction(Intent.ACTION_MAIN))
+    }
+
+    companion object {
+        /** A contact id: Teléfono's «Editar contacto» opens its editor here. */
+        const val EXTRA_EDIT = "com.zirakusa.contactos.EDIT"
+        /** A contact id: the widget opens its page here. */
+        const val EXTRA_OPEN = "com.zirakusa.contactos.OPEN"
+    }
 
     private fun ask() = allow.launch(arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS))
 

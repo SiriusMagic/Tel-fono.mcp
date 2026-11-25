@@ -3,7 +3,6 @@ package com.zirakusa.telefono
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
-import android.content.ContentUris
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -57,10 +56,12 @@ class MainActivity : ComponentActivity() {
         McpMode.load(this)
         tones = runCatching { ToneGenerator(AudioManager.STREAM_DTMF, 60) }.getOrNull()
         val actions = AppActions(allow = ::ask, call = ::call, sms = { open(Intent(Intent.ACTION_SENDTO, "smsto:${android.net.Uri.encode(it)}".toUri())) },
-            addContact = { open(Intent(ContactsContract.Intents.Insert.ACTION).setType(ContactsContract.RawContacts.CONTENT_TYPE).putExtra(ContactsContract.Intents.Insert.PHONE, it)) },
+            // Saving and editing contacts happens in Contactos, inside this same app (the phone may have no other contacts app).
+            addContact = { open(Intent(ContactsContract.Intents.Insert.ACTION).setClass(this, com.zirakusa.contactos.MainActivity::class.java)
+                .putExtra(ContactsContract.Intents.Insert.PHONE, it)) },
             copy = { copy("Teléfono", it) }, tone = ::tone, copyLink = { copy("Teléfono MCP", it) }, goToHub = ::goToHub,
             whatsapp = ::whatsapp, contacts = ::contacts, askScreening = ::askScreening, system = ::system,
-            editContact = { open(Intent(Intent.ACTION_EDIT, ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, it))) })
+            editContact = { open(Intent(this, com.zirakusa.contactos.MainActivity::class.java).putExtra(com.zirakusa.contactos.MainActivity.EXTRA_EDIT, it)) })
         reload()
         if (!state.allowed) ask()
         dialed(intent)
@@ -83,6 +84,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); dialed(intent) }
     override fun onResume() { super.onResume(); reload() }
+    override fun onStop() { super.onStop(); com.zirakusa.contactos.ContactsWidget.refresh(this) }
 
     private fun reload() { state.whatsapp = whatsappPackage() != null; state.role = screeningRole(); state.load() }
 

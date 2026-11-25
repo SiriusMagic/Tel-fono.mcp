@@ -5,6 +5,12 @@ propia actividad y su propio icono de inicio (`com.zirakusa.contactos.MainActivi
 (`res/values*/contactos.xml`, `c_ic_launcher`). Sus herramientas MCP (`contactos/mcp/ContactTools.kt`) las sirve el
 `McpHandler` de Teléfono; `ContactLiveData` les da los contactos reales. Sus pruebas están en `src/test/.../contactos/`.
 
+Contactos tiene su propio icono a elegir (`contactos/ContactsIcon.kt`: cinco `activity-alias` de su actividad, uno activo, con
+el mismo `IconPicker` de `telefono/AppIcon.kt`) y el widget «Contactos» (`contactos/Widget.kt`, `res/layout/c_widget_*`;
+qué muestra lo decide `data/WidgetPeople`, pura). Guardar, crear y editar contactos siempre pasa por Contactos: Teléfono le
+manda `ACTION_INSERT` con el número o `MainActivity.EXTRA_EDIT` con el id. `ContactosState.saveError` dice por qué no se
+guardó (falta el permiso de modificar, o la cuenta lo rechazó: `SaveFailed`); nunca se cierra el editor sin guardar.
+
 Carpeta = package (`android/app/src/main/java/com/zirakusa/telefono/`):
 
 | Carpeta | Qué hay |

@@ -24,6 +24,7 @@ import com.zirakusa.contactos.data.Links
 import com.zirakusa.contactos.data.NoAccess
 import com.zirakusa.contactos.data.Phone
 import com.zirakusa.contactos.data.Raw
+import com.zirakusa.contactos.data.SaveFailed
 
 /**
  * The phone's own contacts (Google, SIM, phone…), read and written through Android's contacts provider. Always with
@@ -125,7 +126,12 @@ class AndroidStore(context: Context) : ContactStore {
         if (c.note.isNotBlank()) row(K.Note.CONTENT_ITEM_TYPE, K.Note.NOTE to c.note)
         c.birthday?.let { row(K.Event.CONTENT_ITEM_TYPE, K.Event.START_DATE to it.iso(), K.Event.TYPE to K.Event.TYPE_BIRTHDAY) }
         if (c.address.isNotBlank()) row(K.StructuredPostal.CONTENT_ITEM_TYPE, K.StructuredPostal.FORMATTED_ADDRESS to c.address, K.StructuredPostal.TYPE to K.StructuredPostal.TYPE_HOME)
+        // One batch: all or nothing. Without «modify contacts» Android says SecurityException; an account that doesn't take
+        // new contacts (or a provider error) says one of the others, and the editor tells the user instead of closing.
         val results = try { cr.applyBatch(ContactsContract.AUTHORITY, ops) } catch (_: SecurityException) { throw NoAccess() }
+            catch (_: android.content.OperationApplicationException) { throw SaveFailed() } catch (_: android.os.RemoteException) { throw SaveFailed() }
+            catch (_: IllegalArgumentException) { throw SaveFailed() } catch (_: IllegalStateException) { throw SaveFailed() }
+            catch (_: UnsupportedOperationException) { throw SaveFailed() }
         val id = if (c.id != 0L) c.id else contactOf(results[0].uri?.lastPathSegment?.toLongOrNull()) ?: 0L
         if (id != 0L && c.starred) star(id, true)
         return c.copy(id = id)

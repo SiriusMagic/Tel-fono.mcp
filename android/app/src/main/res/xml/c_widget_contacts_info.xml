@@ -1,0 +1,8 @@
+<!-- targetCell*, previewLayout: Android 12+ use them; older launchers simply ignore them. Redrawn when contacts change. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedAttribute"
+    android:minWidth="250dp" android:minHeight="110dp" android:targetCellWidth="4" android:targetCellHeight="2"
+    android:minResizeWidth="180dp" android:minResizeHeight="110dp"
+    android:initialLayout="@layout/c_widget_contacts" android:previewLayout="@layout/c_widget_contacts"
+    android:resizeMode="horizontal|vertical" android:updatePeriodMillis="1800000" android:widgetCategory="home_screen"
+    android:description="@string/c_widget_desc" />

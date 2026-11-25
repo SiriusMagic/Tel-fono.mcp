@@ -27,8 +27,11 @@ interface ContactStore {
     fun ringtone(id: Long, uri: String?): Boolean
 }
 
-/** The user hasn't allowed Contactos to read the contacts. */
+/** The user hasn't allowed Contactos to read (or, when saving, to change) the contacts. */
 class NoAccess : Exception()
+
+/** Android refused to save (for example, an account that doesn't take new contacts). Nothing was changed. */
+class SaveFailed : Exception()
 
 /** Contacts in memory, kept by part like Android does: each part has an account and belongs to one contact. */
 class MemoryStore(items: List<Contact> = emptyList(), private val found: List<Account> = listOf(Account.PHONE), var me: Contact? = null) : ContactStore {

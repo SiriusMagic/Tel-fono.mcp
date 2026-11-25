@@ -66,28 +66,28 @@
             </intent-filter>
         </activity-alias>
         <activity-alias android:name=".HomeClaro" android:targetActivity=".MainActivity" android:exported="true"
-            android:enabled="false" android:icon="@mipmap/ic_launcher_light">
+            android:enabled="false" android:icon="@mipmap/ic_launcher_pixel">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
         <activity-alias android:name=".HomeDorado" android:targetActivity=".MainActivity" android:exported="true"
-            android:enabled="false" android:icon="@mipmap/ic_launcher_gold">
+            android:enabled="false" android:icon="@mipmap/ic_launcher_oil">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
         <activity-alias android:name=".HomeAzul" android:targetActivity=".MainActivity" android:exported="true"
-            android:enabled="false" android:icon="@mipmap/ic_launcher_blue">
+            android:enabled="false" android:icon="@mipmap/ic_launcher_glass">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
         <activity-alias android:name=".HomeVerde" android:targetActivity=".MainActivity" android:exported="true"
-            android:enabled="false" android:icon="@mipmap/ic_launcher_green">
+            android:enabled="false" android:icon="@mipmap/ic_launcher_classic">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -109,11 +109,56 @@
             android:taskAffinity="${applicationId}.contactos" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            <!-- «Añadir a contactos» from Teléfono or another app: fills «Nuevo contacto»; only the user's «Guardar» saves. -->
+            <intent-filter>
+                <action android:name="android.intent.action.INSERT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/contact" />
+                <data android:mimeType="vnd.android.cursor.dir/raw_contact" />
+            </intent-filter>
+        </activity>
+        <!-- Contactos' own launcher icon, the one the user picks in Contactos › Ajustes (one alias enabled at a time; never
+             rename an alias). It opens straight on the list. -->
+        <activity-alias android:name="com.zirakusa.contactos.Home" android:targetActivity="com.zirakusa.contactos.MainActivity"
+            android:exported="true" android:enabled="true" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias android:name="com.zirakusa.contactos.HomeDibujo" android:targetActivity="com.zirakusa.contactos.MainActivity"
+            android:exported="true" android:enabled="false" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher_cartoon">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="com.zirakusa.contactos.HomeOleo" android:targetActivity="com.zirakusa.contactos.MainActivity"
+            android:exported="true" android:enabled="false" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher_oil">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="com.zirakusa.contactos.HomeRelieve" android:targetActivity="com.zirakusa.contactos.MainActivity"
+            android:exported="true" android:enabled="false" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher_clay">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="com.zirakusa.contactos.HomeCristal" android:targetActivity="com.zirakusa.contactos.MainActivity"
+            android:exported="true" android:enabled="false" android:label="@string/c_app_name" android:icon="@mipmap/c_ic_launcher_glass">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <!-- «Contactos» home-screen widget (see contactos/Widget.kt): favourites, Teléfono and «Nuevo contacto». -->
+        <receiver android:name="com.zirakusa.contactos.ContactsWidgetProvider" android:exported="false" android:label="@string/c_app_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/c_widget_contacts_info" />
+        </receiver>
         <!-- «Compartir» a contact: its .vcf from the app's cache, read only by the app the user picks. -->
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.files"
             android:exported="false" android:grantUriPermissions="true">

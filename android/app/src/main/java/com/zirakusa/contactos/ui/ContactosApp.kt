@@ -34,12 +34,14 @@ class AppActions(
     val exportCards: () -> Unit = {},
     val toast: (Int) -> Unit = {},
     val copy: (String) -> Unit = {},
+    /** «Añadir widget a la pantalla de inicio» (the launcher asks the user). */
+    val addWidget: () -> Unit = {},
 )
 
 @Composable fun ContactosApp(state: ContactosState, actions: AppActions = AppActions()) = when (state.page) {
     Page.LIST -> ListScreen(state, actions)
     Page.DETAIL -> state.shown?.let { DetailScreen(state, it, actions) } ?: ListScreen(state, actions)
-    Page.EDIT -> EditScreen(state)
+    Page.EDIT -> EditScreen(state, actions)
     Page.PICK -> state.shown?.let { PickScreen(state, it) } ?: ListScreen(state, actions)
     Page.CARD -> state.shown?.let { CardScreen(state, it, actions) } ?: ListScreen(state, actions)
     Page.DUPLICATES -> DuplicatesScreen(state)

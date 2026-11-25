@@ -12,8 +12,8 @@ android {
         applicationId = "com.zirakusa.telefono"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.4.0"
+        versionCode = 6
+        versionName = "0.5.0"
         // Modo MCP: the same public relay as the rest of the family (one device id per app). Empty = no MCP.
         val relayUrl = (project.findProperty("telefonoRelayUrl") as String?).orEmpty().trimEnd('/')
         buildConfigField("String", "RELAY_URL", "\"$relayUrl\"")

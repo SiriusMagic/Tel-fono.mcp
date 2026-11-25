@@ -1,3 +1,24 @@
+# Teléfono 0.5.0: ya se pueden añadir contactos, widget de Contactos e iconos nuevos
+
+- **Arreglado: no dejaba añadir contactos.** Teléfono solo pedía permiso para *leer* contactos, así que al tocar «Guardar»
+  Android lo rechazaba y no pasaba nada. Ahora Contactos pide también *modificarlos* al abrirse (Android lo da sin otra
+  pregunta si ya podía leerlos) y, si aun así falta, el editor lo dice con un botón «Permitir» y guarda en cuanto lo das,
+  sin perder lo escrito. Si una cuenta no acepta contactos nuevos, lo dice («Prueba otra en “Guardar en”») en vez de
+  cerrarse.
+- **«Añadir contacto» y «Editar contacto» de Teléfono abren Contactos** (dentro de esta misma app), con el número ya
+  escrito. Antes abrían la app de contactos del sistema, que puede no existir. Otras apps que piden «Añadir a contactos»
+  también pueden usar Contactos.
+- **Widget «Contactos»** (mantén pulsado un espacio vacío › Widgets, o Contactos › Ajustes › «Añadir widget»): tus
+  favoritos (★) con sus iniciales, el botón verde para abrir **Teléfono**, «+» para un contacto nuevo y el título para ir
+  directo a **Contactos**. Tocar un favorito abre Teléfono con su número listo: la llamada empieza solo cuando tú la
+  haces.
+- **Iconos nuevos de Teléfono**: 3D (el de fábrica), Píxel, Óleo, Cristal y Clásico. Se quitan los anteriores; si tenías
+  uno elegido, pasa solo al nuevo que ocupa su lugar.
+- **Icono de Contactos a elegir** (Contactos › Ajustes › Icono de Contactos): Píxel (el de fábrica), Dibujo, Óleo, 3D y
+  Cristal. El widget usa el mismo. Tras esta actualización quizá tengas que volver a poner el icono de Contactos en tu
+  pantalla de inicio (una sola vez).
+- 44 pruebas.
+
 # Teléfono 0.4.0: filtro de llamadas, anuncio de voz y marcación rápida
 
 - **Filtro de llamadas no deseadas** (Ajustes › Llamadas): Teléfono puede ser el «filtro de llamadas» de Android (Android 10

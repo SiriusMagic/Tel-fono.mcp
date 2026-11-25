@@ -34,6 +34,7 @@ import com.zirakusa.contactos.ui.theme.ContactosColors
         PageTop(stringResource(R.string.c_settings)) { state.page = Page.LIST }
         ContactsSettings(state, actions)
         ThemeCard(state.themeMode, state.accent, state::changeTheme, state::changeAccent)
+        com.zirakusa.contactos.ContactsIconCard(ContactosColors.Card, ContactosColors.Text, ContactosColors.Muted, ContactosColors.Accent)
         Caption(stringResource(R.string.c_about))
         Group {
             Item(stringResource(R.string.c_privacy), null) { privacy = true }
