@@ -1,0 +1,8 @@
+<resources>
+    <string name="mcp_option_title">MCP mode</string>
+    <string name="mcp_option_enable">Enable MCP</string>
+    <string name="mcp_option_local">Allow local MCP</string>
+    <string name="mcp_option_redirect">Redirect to Hub</string>
+    <string name="mcp_option_open_hub">Open Arka</string>
+    <string name="mcp_option_probe">Latest MCP probe received · ID %1$s</string>
+</resources>

@@ -107,13 +107,17 @@ class McpTest {
         com.zirakusa.telefono.mcp.McpMode.turnRemote(false)
         val list = JSONObject(com.zirakusa.telefono.mcp.McpMode.local("""{"jsonrpc":"2.0","id":1,"method":"tools/list"}""")!!)
         assertTrue(list.getJSONObject("result").getJSONArray("tools").length() > 0)
+        com.zirakusa.telefono.mcp.McpMode.allowLocal(false)
+        assertEquals("LOCAL_DISABLED", HubLink.tool(true, "{}").getString("error"))
+        com.zirakusa.telefono.mcp.McpMode.allowLocal(true)
         val viaProvider = JSONObject(HubLink.tool(true, """{"jsonrpc":"2.0","id":2,"method":"tools/list"}""").getString("response"))
         assertEquals(2, viaProvider.getInt("id"))
         assertEquals("BAD_REQUEST", HubLink.tool(true, "").getString("error"))
         assertEquals("NOT_SAME_DEVELOPER", HubLink.tool(false, "{}").getString("error"))
         assertTrue(HubLink.status(true).containsKey("remote"))
-        HubLink.connect(true); assertTrue(com.zirakusa.telefono.mcp.McpMode.remote)                 // Arka › «Activar MCP»
+        HubLink.connect(true); assertTrue(com.zirakusa.telefono.mcp.McpMode.remote)                 // Redireccionar a Hub
         assertFalse(HubLink.disconnect(true).getBoolean("remote")); assertFalse(com.zirakusa.telefono.mcp.McpMode.remote)
+        com.zirakusa.telefono.mcp.McpMode.allowLocal(false)
         com.zirakusa.telefono.mcp.McpMode.relayUrl = relay                                          // as the other tests expect
     }
 

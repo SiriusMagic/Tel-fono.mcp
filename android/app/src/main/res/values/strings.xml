@@ -30,7 +30,7 @@
     <string name="mcp_status_off">Apagado</string>
     <string name="hub_link_permission">Vincular con Gateway Hub</string>
     <string name="summary_permission">Resumen para Inicio</string>
-    <string name="mcp_settings_hint">Lo controla Arka: activarlo, permitirlo en local y crear tokens.</string>
+    <string name="mcp_settings_hint">Configura el acceso local y la redirección a Hub.</string>
     <string name="tab_recents">Recientes</string>
     <string name="tab_keypad">Teclado</string>
     <string name="tab_favorites">Favoritos</string>
@@ -157,5 +157,5 @@
     <string name="sys_calls_hint">Abre los ajustes de llamadas de Android: buzón de voz, desvío, llamada en espera, mostrar tu número.</string>
     <string name="recording_title">Grabación automática de llamadas</string>
     <string name="recording_text">No es posible: desde Android 10, Android no deja que las apps graben llamadas. Solo la app de teléfono que viene de fábrica puede hacerlo, si el fabricante lo permite. Teléfono no graba nada.</string>
-    <string name="mcp_no_arka">Instala Arka para activar el Modo MCP.</string>
+    <string name="mcp_no_arka">Instala Arka para administrar los enlaces del Hub.</string>
 </resources>

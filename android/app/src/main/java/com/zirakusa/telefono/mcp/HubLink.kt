@@ -16,7 +16,7 @@ import android.os.Bundle
 object HubLink {
     fun answer(sameDeveloper: Boolean): Bundle = when {
         !sameDeveloper -> error("NOT_SAME_DEVELOPER", "Solo apps firmadas por el mismo desarrollador que Teléfono.")
-        !McpMode.remote -> error("REDIRECT_OFF", "Activa su Modo MCP en Arka › MCP.")
+        !McpMode.remote -> error("REDIRECT_OFF", "Activa «Redireccionar a Hub» en los ajustes de la app.")
         McpMode.relayUrl.isBlank() -> error("NO_RELAY", "Esta versión de Teléfono no tiene enlace público (relay).")
         else -> Bundle().apply { putString("link", McpMode.hubLink()) }
     }
@@ -24,12 +24,16 @@ object HubLink {
     fun disconnect(sameDeveloper: Boolean): Bundle =
         if (!sameDeveloper) answer(false) else { McpMode.turnRemote(false); status(true) }
     fun status(sameDeveloper: Boolean): Bundle = if (!sameDeveloper) answer(false) else Bundle().apply {
-        putBoolean("remote", McpMode.remote); putString("state", McpMode.state.name)
+        putBoolean("remote", McpMode.remote)
+        putBoolean("enabled", McpMode.enabled)
+        putBoolean("localMcp", McpMode.localMcp)
+        putString("state", McpMode.state.name)
     }
 
     fun tool(sameDeveloper: Boolean, request: String?): Bundle = when {
         !sameDeveloper -> answer(false)
         request.isNullOrBlank() -> error("BAD_REQUEST", "Falta la petición.")
+        !McpMode.localMcp -> error("LOCAL_DISABLED", "Activa «Permitir MCP local» en los ajustes de la app.")
         else -> McpMode.local(request)?.let { r -> Bundle().apply { putString("response", r) } } ?: error("NOT_READY", "La app aún no está lista.")
     }
 

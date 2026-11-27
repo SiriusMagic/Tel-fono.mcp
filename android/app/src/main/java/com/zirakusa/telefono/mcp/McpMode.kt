@@ -12,12 +12,14 @@ import com.zirakusa.telefono.data.Settings
 import com.zirakusa.telefono.data.SharedValues
 
 /**
- * The Modo MCP, run by Arka (same developer, through [HubLinkProvider]): «connect» turns the public link on (the relay,
- * with Arka's own token, so the hub decides who may do what) and «disconnect» turns it off. Lucía calls the tools on the
- * phone with [local], without internet. Off by default; nothing to set up in this app.
+ * The public relay may run for MCP or for redirection. Only redirection serves the current Arka token.
+ * The phone grants local access separately through the signature-protected provider.
  */
 object McpMode {
     var remote by mutableStateOf(false); private set
+    var enabled by mutableStateOf(false); private set
+    var localMcp by mutableStateOf(false); private set
+    val active get() = enabled || remote
     var state by mutableStateOf(RelayLink.State.OFFLINE); private set
     /** Called on the main thread after a tool changed the places or got a new forecast, so the screen reloads them. */
     var onChanged: () -> Unit = {}
@@ -34,10 +36,12 @@ object McpMode {
         val app = context.applicationContext
         val p = app.getSharedPreferences("mcp", Context.MODE_PRIVATE)
         prefs = p
-        remote = p.getBoolean("redirect", false)
+        remote = p.getBoolean("redirect", true)
+        enabled = p.getBoolean("enabled", false)
+        localMcp = p.getBoolean("localMcp", false)
         token = Token(SecretBox.open(p.getString("arka", "") ?: "").ifBlank {
             (Legacy.redirectSecret(SecretBox.open(p.getString("tokens", "") ?: "")) ?: Token.secret())
-                .also { p.edit { putString("arka", SecretBox.seal(it)); remove("tokens"); remove("enabled") } }
+                .also { p.edit { putString("arka", SecretBox.seal(it)); remove("tokens") } }
         })
         device = p.getString("device", null) ?: Token.id().repeat(2).also { p.edit { putString("device", it) } }
         relaySecret = SecretBox.open(p.getString("relay", "") ?: "").ifBlank {
@@ -48,7 +52,9 @@ object McpMode {
         apply()
     }
 
-    /** Arka's «Activar MCP» for this app: the public link on or off. */
+    fun enable(on: Boolean) { enabled = on; prefs?.edit { putBoolean("enabled", on) }; apply() }
+    fun allowLocal(on: Boolean) { localMcp = on; prefs?.edit { putBoolean("localMcp", on) } }
+
     fun turnRemote(on: Boolean) { remote = on; prefs?.edit { putBoolean("redirect", on) }; apply() }
 
     fun hubLink() = "${relayUrl.trimEnd('/')}/d/$device/mcp?token=${token.secret}"
@@ -66,9 +72,9 @@ object McpMode {
 
     private fun apply() {
         val d = data ?: return
-        if (remote && relayUrl.isNotBlank()) {
+        if (active && relayUrl.isNotBlank()) {
             if (link == null) link = RelayLink(relayUrl, device, relaySecret,
-                McpHandler({ listOf(token) }, d, BuildConfig.VERSION_NAME, contacts = contacts)) { state = it }.also { it.start() }
+                McpHandler({ if (remote) listOf(token) else emptyList() }, d, BuildConfig.VERSION_NAME, contacts = contacts)) { state = it }.also { it.start() }
         } else { link?.stop(); link = null; state = RelayLink.State.OFFLINE }
     }
 }

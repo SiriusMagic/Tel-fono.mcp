@@ -29,7 +29,7 @@
     <string name="mcp_status_off">Off</string>
     <string name="hub_link_permission">Link with Gateway Hub</string>
     <string name="summary_permission">Summary for Inicio</string>
-    <string name="mcp_settings_hint">Controlled from Arka: turning it on, allowing it locally and creating tokens.</string>
+    <string name="mcp_settings_hint">Set up local access and redirection to Hub.</string>
     <string name="tab_recents">Recents</string>
     <string name="tab_keypad">Keypad</string>
     <string name="tab_favorites">Favourites</string>
@@ -155,5 +155,5 @@
     <string name="sys_calls_hint">Opens Android\'s call settings: voicemail, forwarding, call waiting, showing your number.</string>
     <string name="recording_title">Automatic call recording</string>
     <string name="recording_text">Not possible: since Android 10, Android doesn\'t let apps record calls. Only the phone app that comes with the phone can, if the maker allows it. Teléfono records nothing.</string>
-    <string name="mcp_no_arka">Install Arka to turn MCP mode on.</string>
+    <string name="mcp_no_arka">Install Arka to manage Hub connections.</string>
 </resources>

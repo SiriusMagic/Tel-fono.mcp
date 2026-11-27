@@ -1,0 +1,8 @@
+<resources>
+    <string name="mcp_option_title">Modo MCP</string>
+    <string name="mcp_option_enable">Activar MCP</string>
+    <string name="mcp_option_local">Permitir MCP local</string>
+    <string name="mcp_option_redirect">Redireccionar a Hub</string>
+    <string name="mcp_option_open_hub">Abrir Arka</string>
+    <string name="mcp_option_probe">Última prueba MCP recibida · ID %1$s</string>
+</resources>

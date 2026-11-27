@@ -28,6 +28,7 @@ import com.zirakusa.telefono.data.Dial
 import com.zirakusa.telefono.data.SharedValues
 import com.zirakusa.telefono.data.Sim
 import com.zirakusa.telefono.mcp.McpMode
+import com.zirakusa.telefono.mcp.showMcpOptions
 import com.zirakusa.telefono.ui.AppActions
 import com.zirakusa.telefono.ui.Page
 import com.zirakusa.telefono.ui.Role
@@ -168,9 +169,5 @@ class MainActivity : ComponentActivity() {
         Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
-    /** «Modo MCP» in Ajustes: it is turned on, allowed on the phone and given tokens in Arka, so this opens Arka. */
-    private fun openArka() {
-        val open = packageManager.getLaunchIntentForPackage("com.zirakusa.gatewayhub")
-        if (open != null) startActivity(open) else Toast.makeText(this, R.string.mcp_no_arka, Toast.LENGTH_LONG).show()
-    }
+    private fun openArka() = showMcpOptions(this)
 }
